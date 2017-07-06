@@ -252,7 +252,7 @@ class Connection(object):
                                   sample_filter.get('meter')) \
                                   or self.SAMPLE_T
         coll = 'statistics%s' % T
-        print ("get_statistics2 q = %s" % q)
+        # print ("get_statistics2 q = %s" % q)
         if limit:
             results = self.db[coll].find(q,
                                          sort=[('timestamp', -1)],

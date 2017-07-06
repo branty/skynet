@@ -187,19 +187,28 @@ class ZabbixController(object):
                     "history": histoty,
                     "sortfield": sortfield,
                     "sortorder": sortorder,
-                    "limit": len(itemids)
+                    "limit": len(itemids) if isinstance(itemids,
+                                                        list) else 1
                     },
                 "auth": self.auth,
                 "id": 1
         }
-        if isinstance(itemids, list):
-            payload['params']['itemids'] = itemids
+        payload['params']['itemids'] = itemids
         response = self.call_zabbix_api(payload)
         return response
 
     def create_host_total(self):
         groupids = self.get_openstack_hostgroups()
-        response = self.get_all_hosts({"groupids": groupids})
+        try:
+            response = self.get_all_hosts({"groupids": groupids})
+        except Exception as e:
+            print (e)
+            # Failed to get host, default return None
+            return {
+                "total": 0,
+                "active": 0,
+                "off": 0
+            }
         if "error" in response:
             print "Bad Request:%s" % response['error']
             return {"total": 0,
@@ -221,10 +230,10 @@ class ZabbixController(object):
             for item in total_items['result']:
                 if int(item['lastvalue']) > 0 and int(item['prevvalue']) > 0:
                     itemids.append(item['itemid'])
-            ava_mems = self.get_history("3", itemids)
             total_mems = 0
-            for i in ava_mems['result']:
-                total_mems += int(i['value'])
+            for item in itemids:
+                ava_mems = self.get_history("3", item)
+                total_mems += int(ava_mems['result'][0].get("value", 0))
             return total_mems
         try:
             groupids = self.get_openstack_hostgroups()
@@ -246,43 +255,46 @@ class ZabbixController(object):
                           sum_ava_mems) / sum_total_mems, 4)
             }
         except:
-            print "Failed to get openstack cluster memory usage"
+            print "Failed to get metric openstack.hosts.memory.usage"
             return {
                 "available_mems": 0,
                 "total_mems": 0,
                 "mem_used_radio": 0.0
             }
 
+    def _get_item_values(self, total_items):
+        items_map = {}
+        for item in total_items['result']:
+            if float(item['lastvalue']) > 0 \
+               and float(item['prevvalue']) > 0:
+                items_map[item['itemid']] = item['hostid']
+        pavais_his = list()
+        for itemid in items_map.keys():
+            response = self.get_history("7", itemid)
+            pavais_his.append(
+                (items_map[itemid],
+                 float(response['result'][0].get("value", 0.0))))
+        return pavais_his
+
     def create_hosts_top_memory_usage(self, top=5):
         try:
-            def _get(total_items):
-                itemids = list()
-                items_map = {}
-                for item in total_items['result']:
-                    if float(item['lastvalue']) > 0 \
-                       and float(item['prevvalue']) > 0:
-                        itemids.append(item['itemid'])
-                        items_map[item['itemid']] = item['hostid']
-                pavais_his = self.get_history("7", itemids)
-                pavais = [(items_map[i['itemid']],
-                           float(i['value'])) for i in pavais_his['result']]
-                return pavais
             groupids = self.get_openstack_hostgroups()
             filters = {"groupids": groupids}
             search_key = {"key_": "vm.memory.size[pavailable]"}
             total_items = self.get_item_by_filters(filters, search_key)
-            total_pavais = _get(total_items)
+            total_pavais = self._get_item_values(total_items)
             sorted_memory_usage = sorted(total_pavais,
                                          key=lambda i: i[1])[:top]
             hostid_value_map = {}
-            hostids = []
             top_result = []
             for i in sorted_memory_usage:
                 hostid_value_map[i[0]] = round((100 - i[1]), 2)
-                hostids.append(i[0])
-            hosts = self.get_all_hosts({"hostids": hostids})['result']
+            hosts = self.get_all_hosts({"hostids":
+                                        hostid_value_map.keys()})['result']
             top_result = [{host['host']:
                           hostid_value_map[host['hostid']]} for host in hosts]
+            top_result.sort(cmp=lambda x, y: cmp(x, y),
+                            key=lambda x: x.values()[0])
             return top_result
         except:
             print "Failed to get openstack cluster top%s memory usage" % top
@@ -293,34 +305,24 @@ class ZabbixController(object):
            load divided by number of CPU cores.
         """
         try:
-            def _get(total_items):
-                items_map = {}
-                itemids = list()
-                for item in total_items['result']:
-                    if float(item['lastvalue']) > 0 \
-                       and float(item['prevvalue']) > 0:
-                        itemids.append(item['itemid'])
-                        items_map[item['itemid']] = item['hostid']
-                cpu_his = self.get_history("7", itemids)
-                cpus = [(items_map[i['itemid']],
-                        float(i['value'])) for i in cpu_his['result']]
-                return cpus
             groupids = self.get_openstack_hostgroups()
             filters = {"groupids": groupids}
             search_key = {"key_": "system.cpu.load[all,avg5]"}
             total_items = self.get_item_by_filters(filters, search_key)
-            total_cpus = _get(total_items)
+            total_cpus = self._get_item_values(total_items)
             sorted_memory_usage = sorted(total_cpus,
                                          key=lambda i: i[1])[:top]
             hostid_value_map = {}
-            hostids = []
             top_result = []
             for i in sorted_memory_usage:
                 hostid_value_map[i[0]] = i[1]
-                hostids.append(i[0])
-            hosts = self.get_all_hosts({"hostids": hostids})['result']
+            hosts = self.get_all_hosts({
+                        "hostids":
+                        hostid_value_map.keys()})['result']
             top_result = [{host['host']:
-                          hostid_value_map[host['hostid']]} for host in hosts]
+                           hostid_value_map[host['hostid']]} for host in hosts]
+            top_result.sort(cmp=lambda x, y: cmp(x, y),
+                            key=lambda x: x.values()[0])
             return top_result
         except:
             print "Failed to get openstack cluster top%s memory usage" % top
