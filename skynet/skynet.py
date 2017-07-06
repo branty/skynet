@@ -1,0 +1,531 @@
+#  Copyright  2017 EasyStack, Inc
+#  Author: Branty<jun.wang@easystack.cn>
+
+import copy
+import datetime
+import json
+import socket
+import struct
+import time
+import urllib2
+
+from common import CONF
+from common import OpenStackClients
+from mongodb import Connection as MONGO_CONN
+
+TASK_MAPS = [
+    ("openstack.hosts.total", "create_host_total"),
+    ("openstack.hosts.memory.usage", "create_memory_usage"),
+    ("openstack.hosts.top5.memory", "create_hosts_top_memory_usage"),
+    ("openstack.hosts.top5.cpu", "create_hosts_top_cpu_util"),
+    ("openstack.vms.total", "create_vms_total"),
+    ("openstack.vms.memory.usage", "create_vms_memory_usage"),
+    ("openstack.vms.vpus.usage", "create_vms_vcpu_usage"),
+    ("openstack.vms.top5.memory", "create_vms_top_memory_usage"),
+    ("openstack.vms.top5.cpu", "create_vms_top_vcpu_usage"),
+    ("openstack.alarms.total", "create_alarms_total")
+]
+
+HOST_CACHED = {}
+
+VMS_CACHED = {}
+
+
+def clear(is_all=False):
+    if is_all:
+        HOST_CACHED.clear()
+    VMS_CACHED.clear()
+
+
+class ZabbixController(object):
+    """Zabbix controller send agent history data by socket
+    """
+    def __init__(self, conf, mongo_conn):
+        self.conf = conf
+        self.zabbix_host = conf.get_option("zabbix", "zabbix_host")
+        self.zabbix_port = conf.get_option("zabbix", "zabbix_port",
+                                           default=10051)
+        self.zabbix_user = conf.get_option("zabbix", "zabbix_user")
+        self.zabbix_user_pwd = conf.get_option("zabbix", "zabbix_user_pwd")
+        self.auth = self.get_zabbix_auth()
+        self.osk_clients = OpenStackClients(conf)
+        self.mongo_handler = mongo_conn
+
+    def set_proxy_head(self, data):
+        """simplify constructing the protocol to communicate with Zabbix"""
+        # data_length = len(data)
+        # data_header = struct.pack('i', data_length) + '\0\0\0\0'
+        # HEADER = '''ZBXD\1%s%s'''
+        # data_to_send = HEADER % (data_header, data)
+        payload = json.dumps(data)
+        return payload
+
+    def connect_zabbix(self, payload):
+        """Send zabbix histoty data
+        """
+        ss = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        ss.connect((self.zabbix_host, int(self.zabbix_port)))
+        # read socket response, the five bytes are the head msg
+        ss.send(payload)
+        response_head = ss.recv(5, socket.MSG_WAITALL)
+        if response_head != "ZBXD\1":
+            print "Faild to send zabbix socket date,got invalid response."
+            return
+
+        # read the date head to get the length of response
+        response_data_head = ss.recv(8, socket.MSG_WAITALL)
+        response_data = response_data_head[:4]
+        response_len = struct.unpack('i', response_data)[0]
+
+        # read the whole rest of the response now that we know the length
+        response_raw = ss.recv(response_len, socket.MSG_WAITALL)
+        ss.close()
+        response = json.loads(response_raw)
+        print response
+        return response
+
+    def socket_to_zabbix(self, payload=None):
+        # from pprint import pprint
+        data = {"request": "sender data"}
+        if isinstance(payload, dict):
+            data['data'] = [payload]
+        elif isinstance(payload, list):
+            data['data'] = payload
+        # pprint(data)
+        payload = self.set_proxy_head(data)
+        self.connect_zabbix(payload)
+
+    def get_zabbix_auth(self):
+        """ Get admin credentials (user, password) from Zabbix API
+        """
+        payload = {"jsonrpc": "2.0",
+                   "method": "user.login",
+                   "params": {"user": self.zabbix_user,
+                              "password": self.zabbix_user_pwd},
+                   "id": 2}
+        response = self.call_zabbix_api(payload)
+        if "error" in response:
+            print ("Incorrect user or password, please check it again")
+        return response['result']
+
+    def call_zabbix_api(self, payload):
+        url = "http://%s/zabbix/api_jsonrpc.php" % self.zabbix_host
+        data = json.dumps(payload)
+        req = urllib2.Request(url, data, {'Content-Type': 'application/json'})
+        f = urllib2.urlopen(req)
+        response = json.loads(f.read())
+        f.close()
+        return response
+
+    def get_openstack_hostgroups(self):
+        """Get all hosts filtered by hostgroups
+
+        Default filter groups is : ['Controller','Computer']
+        """
+        # default is ['']
+        hostgroups = self.conf.get_option("skynet", "hostgroups")
+        hostgroups = [i.strip() for i in hostgroups.split(',')]
+        payload = {
+            "jsonrpc": "2.0",
+            "method": "hostgroup.get",
+            "params": {
+                "output": "extend",
+                "filter": {
+                    "name": hostgroups}
+            },
+            "auth": self.auth,
+            "id": 1
+        }
+        response = self.call_zabbix_api(payload)
+        if "error" in response:
+            print "Bad Request:%s" % response['error']
+        return [hg['groupid'] for hg in response['result']]
+
+    def get_all_hosts(self, filters=None):
+        payload = {
+                "jsonrpc": "2.0",
+                "method": "host.get",
+                "params": {
+                    "output": "extend"
+                    },
+                "auth": self.auth,
+                "id": 1
+            }
+        payload['params'].update(filters)
+        response = self.call_zabbix_api(payload)
+        return response
+
+    def get_item_by_filters(self, filters, search_key=None):
+        """Get all itemids by hostgroups and search_key
+
+        :param filter:dict: refers to the zabbix hostgroup
+        :param search_key:dict: refers to the item_key,also a filter msg
+        :rtype: list
+        """
+        payload = {
+                "jsonrpc": "2.0",
+                "method": "item.get",
+                "params": {
+                    "output": "extend"
+                    },
+                "auth": self.auth,
+                "id": 1
+        }
+        payload['params'].update(filters)
+        if search_key:
+            payload['params']['search'] = search_key
+        response = self.call_zabbix_api(payload)
+        return response
+
+    def get_history(self, histoty, itemids,
+                    sortfield="clock", sortorder="DESC"):
+        payload = {
+                "jsonrpc": "2.0",
+                "method": "history.get",
+                "params": {
+                    "output": "extend",
+                    "history": histoty,
+                    "sortfield": sortfield,
+                    "sortorder": sortorder,
+                    "limit": len(itemids)
+                    },
+                "auth": self.auth,
+                "id": 1
+        }
+        if isinstance(itemids, list):
+            payload['params']['itemids'] = itemids
+        response = self.call_zabbix_api(payload)
+        return response
+
+    def create_host_total(self):
+        groupids = self.get_openstack_hostgroups()
+        response = self.get_all_hosts({"groupids": groupids})
+        if "error" in response:
+            print "Bad Request:%s" % response['error']
+            return {"total": 0,
+                    "active": 0,
+                    "off": 0}
+        total = len(response['result'])
+        active = 0
+        for host in response['result']:
+            if host['status'] == "0" and not host['error']:
+                active += 1
+        return {
+            "total": total,
+            "active": active,
+            "off": (total - active)}
+
+    def create_memory_usage(self):
+        def _get(total_items):
+            itemids = list()
+            for item in total_items['result']:
+                if int(item['lastvalue']) > 0 and int(item['prevvalue']) > 0:
+                    itemids.append(item['itemid'])
+            ava_mems = self.get_history("3", itemids)
+            total_mems = 0
+            for i in ava_mems['result']:
+                total_mems += int(i['value'])
+            return total_mems
+        try:
+            groupids = self.get_openstack_hostgroups()
+            # get total memory
+            filters = {"groupids": groupids}
+            search_key = {"key_": "vm.memory.size[available]"}
+            total_items = self.get_item_by_filters(filters, search_key)
+            sum_ava_mems = _get(total_items)
+
+            # get avaliable memory
+            search_key['key_'] = "vm.memory.size[total]"
+            total_items = self.get_item_by_filters(filters, search_key)
+            sum_total_mems = _get(total_items)
+            return {
+                "available_mems": sum_ava_mems,
+                "total_mems": sum_total_mems,
+                "mem_used_radio":
+                    round(1.0 * (sum_total_mems -
+                          sum_ava_mems) / sum_total_mems, 4)
+            }
+        except:
+            print "Failed to get openstack cluster memory usage"
+            return {
+                "available_mems": 0,
+                "total_mems": 0,
+                "mem_used_radio": 0.0
+            }
+
+    def create_hosts_top_memory_usage(self, top=5):
+        try:
+            def _get(total_items):
+                itemids = list()
+                items_map = {}
+                for item in total_items['result']:
+                    if float(item['lastvalue']) > 0 \
+                       and float(item['prevvalue']) > 0:
+                        itemids.append(item['itemid'])
+                        items_map[item['itemid']] = item['hostid']
+                pavais_his = self.get_history("7", itemids)
+                pavais = [(items_map[i['itemid']],
+                           float(i['value'])) for i in pavais_his['result']]
+                return pavais
+            groupids = self.get_openstack_hostgroups()
+            filters = {"groupids": groupids}
+            search_key = {"key_": "vm.memory.size[pavailable]"}
+            total_items = self.get_item_by_filters(filters, search_key)
+            total_pavais = _get(total_items)
+            sorted_memory_usage = sorted(total_pavais,
+                                         key=lambda i: i[1])[:top]
+            hostid_value_map = {}
+            hostids = []
+            top_result = []
+            for i in sorted_memory_usage:
+                hostid_value_map[i[0]] = round((100 - i[1]), 2)
+                hostids.append(i[0])
+            hosts = self.get_all_hosts({"hostids": hostids})['result']
+            top_result = [{host['host']:
+                          hostid_value_map[host['hostid']]} for host in hosts]
+            return top_result
+        except:
+            print "Failed to get openstack cluster top%s memory usage" % top
+            return []
+
+    def create_hosts_top_cpu_util(self, top=5):
+        """The processor load is calculated as system CPU
+           load divided by number of CPU cores.
+        """
+        try:
+            def _get(total_items):
+                items_map = {}
+                itemids = list()
+                for item in total_items['result']:
+                    if float(item['lastvalue']) > 0 \
+                       and float(item['prevvalue']) > 0:
+                        itemids.append(item['itemid'])
+                        items_map[item['itemid']] = item['hostid']
+                cpu_his = self.get_history("7", itemids)
+                cpus = [(items_map[i['itemid']],
+                        float(i['value'])) for i in cpu_his['result']]
+                return cpus
+            groupids = self.get_openstack_hostgroups()
+            filters = {"groupids": groupids}
+            search_key = {"key_": "system.cpu.load[all,avg5]"}
+            total_items = self.get_item_by_filters(filters, search_key)
+            total_cpus = _get(total_items)
+            sorted_memory_usage = sorted(total_cpus,
+                                         key=lambda i: i[1])[:top]
+            hostid_value_map = {}
+            hostids = []
+            top_result = []
+            for i in sorted_memory_usage:
+                hostid_value_map[i[0]] = i[1]
+                hostids.append(i[0])
+            hosts = self.get_all_hosts({"hostids": hostids})['result']
+            top_result = [{host['host']:
+                          hostid_value_map[host['hostid']]} for host in hosts]
+            return top_result
+        except:
+            print "Failed to get openstack cluster top%s memory usage" % top
+            return []
+
+    def create_vms_total(self):
+        global VMS_CACHED
+
+        def _get_all_instances(nv_client):
+            search_opts = {'all_tenants': True}
+            vms = nv_client.servers.list(search_opts=search_opts)
+            for vm in vms:
+                VMS_CACHED[vm.id] = vm.name
+            return vms
+        nv_client = self.osk_clients.nv_client
+        try:
+            instances = _get_all_instances(nv_client)
+        except:
+            print "Failed to get openstack all vms"
+            return {
+                "total_count": 0,
+                "active_count": 0,
+                "error_count": 0,
+                "off_count": 0,
+                "paused_count": 0
+            }
+        total_count = len(instances)
+        error_count = 0
+        off_count = 0
+        paused_count = 0
+        active_vms = list()
+        for i in instances:
+            if i.status == "ACTIVE":
+                active_vms.append(i.id)
+            elif i.status == "ERROR":
+                error_count += 1
+            elif i.status == "SHUTOFF":
+                off_count += 1
+            elif i.status == "SUSPENDED":
+                paused_count += 1
+        VMS_CACHED['ACTIVE_VMS'] = active_vms
+        return {
+            "total_count": total_count,
+            "active_count": len(active_vms),
+            "error_count": error_count,
+            "off_count": off_count,
+            "paused_count": paused_count
+            }
+
+    def create_vms_memory_usage(self):
+        try:
+            hyp_stats_stics = self.osk_clients.nv_client.\
+                hypervisor_stats.statistics()
+        except:
+            print "Failed to get openstack vms memory usage"
+            return {
+                "used_memory_mb": 0,
+                "total_memory_mb": 0,
+                "used_memory_ratio": 0.0
+            }
+        return {
+            "used_memory_mb": hyp_stats_stics.memory_mb_used,
+            "total_memory_mb": hyp_stats_stics.memory_mb,
+            "used_memory_ratio":
+                round(1.0 * hyp_stats_stics.memory_mb_used /
+                      hyp_stats_stics.memory_mb, 4)
+            }
+
+    def create_vms_vcpu_usage(self):
+        try:
+            hyp_stats_stics = self.osk_clients.nv_client.\
+                hypervisor_stats.statistics()
+        except:
+            print "Failed to get openstack vpus kernel usage"
+            return {
+                "used_vcpus_used": 0,
+                "total_vcpus_total": 0,
+                "used_vcpus_ratio": 0.0
+            }
+        return {
+            "used_vcpus_used": hyp_stats_stics.vcpus_used,
+            "total_vcpus_total": hyp_stats_stics.vcpus,
+            "used_vcpus_ratio":
+                round(1.0 * hyp_stats_stics.vcpus_used /
+                      hyp_stats_stics.vcpus, 4)
+            }
+
+    def get_vms_top_metric(self, metric, top=5, windows=3):
+        global VMS_CACHED
+        interval = int(self.conf.get_option("skynet", "interval"))
+        resources = VMS_CACHED['ACTIVE_VMS']
+        sample_filter = {
+            "resource": resources,
+            "meter": metric,
+            "start_timestamp":
+                datetime.datetime.utcnow() -
+                datetime.timedelta(seconds=interval * windows),
+            "end_timestamp": datetime.datetime.utcnow(),
+            "start_timestamp_op": "gt",
+            "end_timestamp_op": "lt"
+        }
+        try:
+            response = self.mongo_handler.get_meter_statistics(
+                sample_filter, interval)
+            cache_result = {}
+            for stas in response:
+                if stas.resource_id not in cache_result:
+                    cache_result[stas.resource_id] = stas.avg
+            # DESC order
+            top_vms = copy.copy(cache_result.items())
+            top_vms.sort(
+                key=lambda x: x[1],
+                cmp=lambda x, y: cmp(float(y), float(x)))
+            result = list()
+            for rsc in top_vms[:top]:
+                result.append({VMS_CACHED[rsc[0]]: rsc[1]})
+            cache_result.clear()
+            return result
+        except:
+            print "Failed to get openstack vm top%d %s metric" % (top, metric)
+            return []
+
+    def create_vms_top_memory_usage(self):
+        return self.get_vms_top_metric("memory.usage", 5, 3)
+
+    def create_vms_top_vcpu_usage(self, top=5, windows=3):
+        return self.get_vms_top_metric("cpu_util", 5, 3)
+
+    def create_alarms_total(self):
+        def _get_all_alarms(clm_client):
+            return clm_client.alarms.list()
+        clm_client = self.osk_clients.clm_client
+        try:
+            alarms = _get_all_alarms(clm_client)
+        except:
+            print "Failed to get openstack all ceilometer alarms"
+            return {
+                "total_count": 0,
+                "no_data_count": 0,
+                "alarm_count": 0,
+                "ok_count": 0
+            }
+        ok_count = 0
+        alarm_count = 0
+        no_data_count = 0
+        for alarm in alarms:
+            if alarm.state == "insufficient data":
+                no_data_count += 1
+            elif alarm.state == "alarm":
+                alarm_count += 1
+            elif alarm.state == "ok":
+                ok_count += 1
+        return {
+            "total_count": len(alarms),
+            "no_data_count": no_data_count,
+            "alarm_count": alarm_count,
+            "ok_count": ok_count
+        }
+
+
+class PollingManager(object):
+    # Use python raw time task
+    # Refactor this executor is necessary
+    def __init__(self, zbx_mg, conf):
+        """Period task executor
+
+        :param zbx_mg: object: zabbix controller instance
+        :param conf: object: skynet.conf parser instance
+        """
+        self.zbx_mg = zbx_mg
+        self.conf = conf
+
+    def start_task(self):
+        fake_openstack_hostname = self.conf.get_option(
+            "skynet",
+            "fake_openstack_hostname"
+            )
+        zabbix_data = list()
+        for item, poller in TASK_MAPS:
+            try:
+                if poller:
+                    payload = getattr(self.zbx_mg, poller)()
+                    data = {
+                        "host": fake_openstack_hostname,
+                        "key": item,
+                        "value": json.dumps(payload)
+                    }
+                    zabbix_data.append(data)
+                else:
+                    print "Skip to poll item: %s metric" % item
+            except AttributeError as e:
+                print e
+            except Exception as e:
+                print e
+        self.zbx_mg.socket_to_zabbix(zabbix_data)
+
+
+def main():
+    print "********** Starting Skynet Polling Task **********"
+    conf = CONF()
+    interval = int(conf.get_option("skynet", "interval"))
+    mongo_conn = MONGO_CONN(conf)
+    zbx_mg = ZabbixController(conf, mongo_conn)
+    polling_mg = PollingManager(zbx_mg, conf)
+    while True:
+        polling_mg.start_task()
+        clear()
+        time.sleep(interval)
