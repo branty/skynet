@@ -4,28 +4,15 @@
 import copy
 import datetime
 import json
+import logging
 import socket
 import struct
-import time
 import urllib2
 
-from common import CONF
-from common import OpenStackClients
-from mongodb import Connection as MONGO_CONN
+from skynet.common import OpenStackClients
 
-TASK_MAPS = [
-    ("openstack.hosts.total", "create_host_total"),
-    ("openstack.hosts.memory.usage", "create_memory_usage"),
-    ("openstack.hosts.top5.memory", "create_hosts_top_memory_usage"),
-    ("openstack.hosts.top5.cpu", "create_hosts_top_cpu_util"),
-    ("openstack.vms.total", "create_vms_total"),
-    ("openstack.vms.memory.usage", "create_vms_memory_usage"),
-    ("openstack.vms.vpus.usage", "create_vms_vcpu_usage"),
-    ("openstack.vms.top5.memory", "create_vms_top_memory_usage"),
-    ("openstack.vms.top5.cpu", "create_vms_top_vcpu_usage"),
-    ("openstack.alarms.total", "create_alarms_total")
-]
 
+LOG = logging.getLogger(__name__)
 HOST_CACHED = {}
 
 VMS_CACHED = {}
@@ -69,7 +56,7 @@ class ZabbixController(object):
         ss.send(payload)
         response_head = ss.recv(5, socket.MSG_WAITALL)
         if response_head != "ZBXD\1":
-            print "Faild to send zabbix socket date,got invalid response."
+            LOG.error("Faild to send zabbix socket date,got invalid response.")
             return
 
         # read the date head to get the length of response
@@ -81,17 +68,15 @@ class ZabbixController(object):
         response_raw = ss.recv(response_len, socket.MSG_WAITALL)
         ss.close()
         response = json.loads(response_raw)
-        print response
+        LOG.info(response)
         return response
 
     def socket_to_zabbix(self, payload=None):
-        # from pprint import pprint
         data = {"request": "sender data"}
         if isinstance(payload, dict):
             data['data'] = [payload]
         elif isinstance(payload, list):
             data['data'] = payload
-        # pprint(data)
         payload = self.set_proxy_head(data)
         self.connect_zabbix(payload)
 
@@ -105,7 +90,7 @@ class ZabbixController(object):
                    "id": 2}
         response = self.call_zabbix_api(payload)
         if "error" in response:
-            print ("Incorrect user or password, please check it again")
+            LOG.error("Incorrect user or password, please check it again")
         return response['result']
 
     def call_zabbix_api(self, payload):
@@ -138,7 +123,7 @@ class ZabbixController(object):
         }
         response = self.call_zabbix_api(payload)
         if "error" in response:
-            print "Bad Request:%s" % response['error']
+            LOG.error("Bad Request:%s" % response['error'])
         return [hg['groupid'] for hg in response['result']]
 
     def get_all_hosts(self, filters=None):
@@ -201,8 +186,8 @@ class ZabbixController(object):
         groupids = self.get_openstack_hostgroups()
         try:
             response = self.get_all_hosts({"groupids": groupids})
-        except Exception as e:
-            print (e)
+        except Exception:
+            LOG.error("Failed to get all hosts in hostgroups %s" % groupids)
             # Failed to get host, default return None
             return {
                 "total": 0,
@@ -210,7 +195,7 @@ class ZabbixController(object):
                 "off": 0
             }
         if "error" in response:
-            print "Bad Request:%s" % response['error']
+            LOG.error("Bad Request:%s" % response['error'])
             return {"total": 0,
                     "active": 0,
                     "off": 0}
@@ -255,11 +240,47 @@ class ZabbixController(object):
                           sum_ava_mems) / sum_total_mems, 4)
             }
         except:
-            print "Failed to get metric openstack.hosts.memory.usage"
+            LOG.error("Failed to get metric openstack.hosts.memory.usage")
             return {
                 "available_mems": 0,
                 "total_mems": 0,
                 "mem_used_radio": 0.0
+            }
+
+    def create_cpu_util(self):
+        def _get(total_items):
+            itemids = list()
+            for item in total_items['result']:
+                if float(item['lastvalue']) > 0 and\
+                   float(item['prevvalue']) > 0:
+                    itemids.append(item['itemid'])
+            total_cpu_util = list()
+            for item in itemids:
+                cpu_util = self.get_history("7", item)
+                total_cpu_util.append(float(cpu_util['result'][0].get(
+                                        "value",
+                                        0)))
+            return total_cpu_util
+        try:
+            groupids = self.get_openstack_hostgroups()
+            # get total cpu_util
+            filters = {"groupids": groupids}
+            search_key = {"key_": "system.cpu.load[all,avg5]"}
+            total_items = self.get_item_by_filters(filters, search_key)
+            hosts_cpu_load_avg5 = _get(total_items)
+            return {
+                "total_cpu_util": 1.0,
+                "used_cpu_util": sum(hosts_cpu_load_avg5),
+                "used_radio":
+                    round(1.0 * sum(hosts_cpu_load_avg5) /
+                          len(hosts_cpu_load_avg5), 4)
+            }
+        except:
+            LOG.error("Failed to get metric openstack.hosts.cpu.util")
+            return {
+                "total_cpu_util": 0.0,
+                "used_cpu_util": 0.0,
+                "used_ratio": 0.0
             }
 
     def _get_item_values(self, total_items):
@@ -297,7 +318,8 @@ class ZabbixController(object):
                             key=lambda x: x.values()[0])
             return top_result
         except:
-            print "Failed to get openstack cluster top%s memory usage" % top
+            LOG.error("Failed to get openstack cluster top%s memory usage"
+                      % top)
             return []
 
     def create_hosts_top_cpu_util(self, top=5):
@@ -325,23 +347,23 @@ class ZabbixController(object):
                             key=lambda x: x.values()[0])
             return top_result
         except:
-            print "Failed to get openstack cluster top%s memory usage" % top
+            LOG.error("Failed to get openstack cluster top%s memory usage"
+                      % top)
             return []
+
+    def _get_all_instances(self, nv_client):
+        global VMS_CACHED
+        search_opts = {'all_tenants': True}
+        vms = nv_client.servers.list(search_opts=search_opts)
+        return vms
 
     def create_vms_total(self):
         global VMS_CACHED
-
-        def _get_all_instances(nv_client):
-            search_opts = {'all_tenants': True}
-            vms = nv_client.servers.list(search_opts=search_opts)
-            for vm in vms:
-                VMS_CACHED[vm.id] = vm.name
-            return vms
         nv_client = self.osk_clients.nv_client
         try:
-            instances = _get_all_instances(nv_client)
+            instances = self._get_all_instances(nv_client)
         except:
-            print "Failed to get openstack all vms"
+            LOG.error("Failed to get openstack all vms")
             return {
                 "total_count": 0,
                 "active_count": 0,
@@ -363,7 +385,8 @@ class ZabbixController(object):
                 off_count += 1
             elif i.status == "SUSPENDED":
                 paused_count += 1
-        VMS_CACHED['ACTIVE_VMS'] = active_vms
+        if not VMS_CACHED.get("ACTIVE_VMS"):
+            VMS_CACHED['ACTIVE_VMS'] = active_vms
         return {
             "total_count": total_count,
             "active_count": len(active_vms),
@@ -377,7 +400,7 @@ class ZabbixController(object):
             hyp_stats_stics = self.osk_clients.nv_client.\
                 hypervisor_stats.statistics()
         except:
-            print "Failed to get openstack vms memory usage"
+            LOG.error("Failed to get openstack vms memory usage")
             return {
                 "used_memory_mb": 0,
                 "total_memory_mb": 0,
@@ -396,7 +419,7 @@ class ZabbixController(object):
             hyp_stats_stics = self.osk_clients.nv_client.\
                 hypervisor_stats.statistics()
         except:
-            print "Failed to get openstack vpus kernel usage"
+            LOG.error("Failed to get openstack vpus kernel usage")
             return {
                 "used_vcpus_used": 0,
                 "total_vcpus_total": 0,
@@ -412,21 +435,34 @@ class ZabbixController(object):
 
     def get_vms_top_metric(self, metric, top=5, windows=3):
         global VMS_CACHED
-        interval = int(self.conf.get_option("skynet", "interval"))
+        if not VMS_CACHED:
+            try:
+                nv_client = self.osk_clients.nv_client
+                instances = self._get_all_instances(nv_client)
+            except:
+                LOG.error("Failed to get openstack all vms")
+                return []
+            active_vms = list()
+            for vm in instances:
+                if vm.status == "ACTIVE":
+                    active_vms.append(vm.id)
+                VMS_CACHED[vm.id] = vm.name
+            VMS_CACHED['ACTIVE_VMS'] = active_vms
         resources = VMS_CACHED['ACTIVE_VMS']
         sample_filter = {
             "resource": resources,
             "meter": metric,
             "start_timestamp":
+                # TO DO(Branty)
                 datetime.datetime.utcnow() -
-                datetime.timedelta(seconds=interval * windows),
+                datetime.timedelta(seconds=60 * windows),
             "end_timestamp": datetime.datetime.utcnow(),
             "start_timestamp_op": "gt",
             "end_timestamp_op": "lt"
         }
         try:
             response = self.mongo_handler.get_meter_statistics(
-                sample_filter, interval)
+                sample_filter)
             cache_result = {}
             for stas in response:
                 if stas.resource_id not in cache_result:
@@ -437,12 +473,21 @@ class ZabbixController(object):
                 key=lambda x: x[1],
                 cmp=lambda x, y: cmp(float(y), float(x)))
             result = list()
-            for rsc in top_vms[:top]:
-                result.append({VMS_CACHED[rsc[0]]: rsc[1]})
+            for rsc in top_vms:
+                try:
+                    if len(result) >= top:
+                        break
+                    rs = {VMS_CACHED[rsc[0]]: rsc[1]}
+                    result.append(rs)
+                except Exception:
+                    # TO DO(Branty)
+                    # Maybe this intance is deleted
+                    LOG.warn("Intance with id %s may be deleted" % rsc[0])
             cache_result.clear()
             return result
         except:
-            print "Failed to get openstack vm top%d %s metric" % (top, metric)
+            LOG.error("Failed to get openstack vm top%d %s metric"
+                      % (top, metric))
             return []
 
     def create_vms_top_memory_usage(self):
@@ -458,7 +503,7 @@ class ZabbixController(object):
         try:
             alarms = _get_all_alarms(clm_client)
         except:
-            print "Failed to get openstack all ceilometer alarms"
+            LOG.error("Failed to get openstack all ceilometer alarms")
             return {
                 "total_count": 0,
                 "no_data_count": 0,
@@ -481,53 +526,3 @@ class ZabbixController(object):
             "alarm_count": alarm_count,
             "ok_count": ok_count
         }
-
-
-class PollingManager(object):
-    # Use python raw time task
-    # Refactor this executor is necessary
-    def __init__(self, zbx_mg, conf):
-        """Period task executor
-
-        :param zbx_mg: object: zabbix controller instance
-        :param conf: object: skynet.conf parser instance
-        """
-        self.zbx_mg = zbx_mg
-        self.conf = conf
-
-    def start_task(self):
-        fake_openstack_hostname = self.conf.get_option(
-            "skynet",
-            "fake_openstack_hostname"
-            )
-        zabbix_data = list()
-        for item, poller in TASK_MAPS:
-            try:
-                if poller:
-                    payload = getattr(self.zbx_mg, poller)()
-                    data = {
-                        "host": fake_openstack_hostname,
-                        "key": item,
-                        "value": json.dumps(payload)
-                    }
-                    zabbix_data.append(data)
-                else:
-                    print "Skip to poll item: %s metric" % item
-            except AttributeError as e:
-                print e
-            except Exception as e:
-                print e
-        self.zbx_mg.socket_to_zabbix(zabbix_data)
-
-
-def main():
-    print "********** Starting Skynet Polling Task **********"
-    conf = CONF()
-    interval = int(conf.get_option("skynet", "interval"))
-    mongo_conn = MONGO_CONN(conf)
-    zbx_mg = ZabbixController(conf, mongo_conn)
-    polling_mg = PollingManager(zbx_mg, conf)
-    while True:
-        polling_mg.start_task()
-        clear()
-        time.sleep(interval)

@@ -2,14 +2,17 @@
 #    Authors: Branty <jun.wang@easystack.cn>
 
 import datetime
+import logging
 import time
 
 import pymongo
 import six
 
-import common
-from common import CONF
+from skynet import common
+from skynet.common import CONF
 
+
+LOG = logging.getLogger(__name__)
 conf = CONF()
 
 MAX_RETRIES = conf.get_option('mongodb', 'max_retries', 3)
@@ -168,14 +171,14 @@ def safe_mongo_call(call):
                 return call(*args, **kwargs)
             except pymongo.errors.AutoReconnect as err:
                 if 0 <= max_retries <= attempts:
-                    print('Unable to reconnect to the primary mongodb '
-                          'after %(retries)d retries. Giving up.' %
-                          {'retries': max_retries})
+                    LOG.error('Unable to reconnect to the primary mongodb '
+                              'after %(retries)d retries. Giving up.' %
+                              {'retries': max_retries})
                     raise
-                print('Unable to reconnect to the primary mongodb: '
-                      '%(errmsg)s. Trying again in %(retry_interval)d '
-                      'seconds.' %
-                      {'errmsg': err, 'retry_interval': retry_interval})
+                LOG.warn('Unable to reconnect to the primary mongodb: '
+                         '%(errmsg)s. Trying again in %(retry_interval)d '
+                         'seconds.' %
+                         {'errmsg': err, 'retry_interval': retry_interval})
                 attempts += 1
                 time.sleep(retry_interval)
     return closure
@@ -200,23 +203,23 @@ class Connection(object):
         while True:
             try:
                 self.client = pymongo.MongoClient(url)
-                print('mongo client: %s' % self.client)
+                LOG.info('mongo client: %s' % self.client)
                 self.CACHE_MAPPING_FILE = common.parse_metric_json(conf)
             except pymongo.errors.ConnectionFailure as e:
                 if max_retries >= 0 and attempts >= max_retries:
-                    print('Unable to connect to the database after '
-                          '%(retries)d retries. Giving up.' %
-                          {'retries': max_retries})
+                    LOG.error('Unable to connect to the database after '
+                              '%(retries)d retries. Giving up.' %
+                              {'retries': max_retries})
                     raise
-                print('Unable to connect to the database server: '
-                      '%(errmsg)s. Trying again in %(retry_interval)d '
-                      'seconds.' %
-                      {'errmsg': e, 'retry_interval': retry_interval})
+                LOG.warn('Unable to connect to the database server: '
+                         '%(errmsg)s. Trying again in %(retry_interval)d '
+                         'seconds.' %
+                         {'errmsg': e, 'retry_interval': retry_interval})
                 attempts += 1
                 time.sleep(retry_interval)
             except Exception as e:
-                print ('Unable to connect to the database server: '
-                       '%(errmsg)s.' % {'errmsg': e})
+                LOG.error('Unable to connect to the database server: '
+                          '%(errmsg)s.' % {'errmsg': e})
                 raise
             else:
                 connection_options = pymongo.uri_parser.parse_uri(url)

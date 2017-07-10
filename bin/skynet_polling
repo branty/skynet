@@ -1,0 +1,13 @@
+#!/usr/bin/env python
+#
+#    Copyright  2017 EasyStack, Inc
+#    Authors: Branty <jun.wang@easystack.cn>
+#
+
+import sys
+
+from skynet.service import main
+
+
+if __name__ == "__main__":
+    sys.exit(main())

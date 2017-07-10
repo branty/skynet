@@ -4,12 +4,19 @@
 import ConfigParser
 from ConfigParser import NoOptionError
 from ConfigParser import NoSectionError
+import logging
 import json
 import os
 import sys
 
+
 from ceilometerclient.v2 import client as clm_clientv20
 from novaclient import client as nova_client
+
+from skynet import utils
+
+
+LOG = logging.getLogger(__name__)
 
 CONF_FILES = [
     os.path.abspath(os.path.join(os.path.dirname(__file__),
@@ -27,6 +34,34 @@ MAPPING_DIRS = [
     "/etc/skynet",
     "/etc/ceilometer"
 ]
+
+
+"""
+    A mapping.json example follows:
+    {
+     "period_colls":[60,300,3600]
+     "60":{
+           "meter_type":["cpu_util",
+                         "disk.read.bytes.rate",
+                         "..."]
+            "mult_topology":[1,5,15,120,1440]
+            "point_topology":[100,300,100,100,200]
+          },
+     "300":{
+          },
+     "3600":{
+            "meter_type":["instance",
+                          "volume",
+                          "account"
+                          ...
+                        ]
+            "mult_topology":[1,6,24]
+            "point_topology":[100,200,200]
+          }
+    }
+    30, 60, 3600 are sampling cycles of meters .
+"""
+CACHE_MAPPING_FILE = {}
 
 
 def mapping_file_to_dict(mapping_file):
@@ -65,20 +100,22 @@ def mapping_file_to_dict(mapping_file):
                 isinstance(map_dict['period_colls'], list):
             for i in map_dict['period_colls']:
                 if str(i) not in map_dict.keys():
-                    print ("Parsing mapping.json error, "
-                           "because of not key %d in "
-                           "the mapping file" % i)
+                    LOG.error("Parsing mapping.json error, "
+                              "because of not key %d in "
+                              "the mapping file" % i)
                     raise
         else:
-            print ("Parsing mapping.json error,"
-                   "Maybe not key period_colls "
-                   "in the mapping file or "
-                   "the value of period_colls is not list")
+            LOG.error("Parsing mapping.json error,"
+                      "Maybe not key period_colls "
+                      "in the mapping file or "
+                      "the value of period_colls is not list")
             raise
         return map_dict
-    except ValueError:
+    except ValueError as e:
+        LOG.error(e.message)
         raise
-    except Exception:
+    except Exception as e:
+        LOG.error(e.message)
         raise
 
 
@@ -101,87 +138,14 @@ def parse_metric_json(conf):
         CACHE_MAPPING_FILE = mapping_file_to_dict(
             get_mapping_file(mapping_file))
     if not CACHE_MAPPING_FILE:
-        print("Can't find Metric mapping.json file, "
-              "Make sure the mapping_file exist in those dirs:%s"
-              % MAPPING_DIRS)
+        LOG.error("Can't find Metric mapping.json file, "
+                  "Make sure the mapping_file exist in those dirs:%s"
+                  % MAPPING_DIRS)
         raise
     return CACHE_MAPPING_FILE
 
 
-"""
-    A mapping.json example follows:
-    {
-     "period_colls":[60,300,3600]
-     "60":{
-           "meter_type":["cpu_util",
-                         "disk.read.bytes.rate",
-                         "..."]
-            "mult_topology":[1,5,15,120,1440]
-            "point_topology":[100,300,100,100,200]
-          },
-     "300":{
-          },
-     "3600":{
-            "meter_type":["instance",
-                          "volume",
-                          "account"
-                          ...
-                        ]
-            "mult_topology":[1,6,24]
-            "point_topology":[100,200,200]
-          }
-    }
-    30, 60, 3600 are sampling cycles of meters .
-"""
-CACHE_MAPPING_FILE = {}
-
-
-def singleton(cls, *args, **kwags):
-    """The basic singleton pattern
-
-    Use __new__ when you need to control the creation of a new instance.
-
-    Use __init__ when you need to control initialization of a new instance.
-
-    How to use them,view  the following link:
-        https://mail.python.org/pipermail/tutor/2008-April/061426.html
-
-    When cls._instance is None, the class of Singleton is not  instantiated,
-    instantiate this class and return.
-
-    When cls._instance in not None, return the instance directly.
-
-    Talk  is too cheap,show you the codes:
-
-    class Singleton(object):
-        def __new__(cls, *args,**kwargs):
-            if not hasattr(cls,'_instance'):
-               cls._instance = super(Singleton,cls).__new__(
-                    cls,
-                    *args,
-                    **kwargs)
-            return  cls._instance
-
-    class Myclass(Singleton):
-        a = 1
-    one = Myclass()
-    two = Myclass()
-    # we can compare one with two, id(), == ,is
-    two.a = 3
-    print one.a  # output is : 3
-    print id(one) == id(two) # outout is : True
-
-    """
-    instance = {}
-
-    def _singleton():
-        if cls not in instance:
-            instance[cls] = cls(*args, **kwags)
-        return instance[cls]
-    return _singleton
-
-
-@singleton
+@utils.singleton
 class CONF(object):
     def __init__(self, conf_file=None):
         """Method to parse skynet.conf
@@ -195,7 +159,7 @@ class CONF(object):
                     conf = f
                     break
         if not conf:
-            print "Can'f find skynet script configuration file"
+            LOG.error("Can'f find skynet script configuration file")
             sys.exit(1)
         self.conf = ConfigParser.SafeConfigParser()
         with open(f) as cnf:
@@ -286,5 +250,3 @@ class OpenStackClients(object):
                     'region_name')
         }
         return clm_clientv20.Client('', **v3_kwargs)
-if __name__ == "__main__":
-    conf = CONF()

@@ -2,3 +2,5 @@
 .pydevproject
 skynet/*.pyc
 build/*
+dist
+skynet.egg-info/

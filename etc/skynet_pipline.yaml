@@ -1,0 +1,30 @@
+---
+sources:
+    - name: normal_metrics
+      interval: 300
+      meters:
+          - name: openstack.hosts.total
+            method: create_host_total
+          - name: openstack.hosts.memory.usage
+            method: create_memory_usage
+          - name: openstack.hosts.cpu.util
+            method: create_cpu_util
+          - name: openstack.vms.total
+            method: create_vms_total
+          - name: openstack.vms.memory.usage
+            method: create_vms_memory_usage
+          - name: openstack.vms.vpus.usage
+            method: create_vms_vcpu_usage
+          - name: openstack.vms.top5.memory
+            method: create_vms_top_memory_usage
+          - name: openstack.vms.top5.cpu
+            method: create_vms_top_vcpu_usage
+          - name: openstack.alarms.total
+            method: create_alarms_total
+    - name: host_top_metrics
+      interval: 360
+      meters:
+          - name: openstack.hosts.top5.memory
+            method: create_hosts_top_memory_usage
+          - name: openstack.hosts.top5.cpu
+            method: create_hosts_top_cpu_util
