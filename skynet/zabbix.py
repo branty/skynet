@@ -265,15 +265,15 @@ class ZabbixController(object):
             groupids = self.get_openstack_hostgroups()
             # get total cpu_util
             filters = {"groupids": groupids}
-            search_key = {"key_": "system.cpu.load[all,avg5]"}
+            search_key = {"key_": "system.cpu.util[,idle]"}
             total_items = self.get_item_by_filters(filters, search_key)
-            hosts_cpu_load_avg5 = _get(total_items)
+            ideal_utils = _get(total_items)
+            cpu_utils = sum([(100 - i) for i in ideal_utils])
+            used_radio = round(1.0 * cpu_utils / len(ideal_utils) / 100, 4)
             return {
                 "total_cpu_util": 1.0,
-                "used_cpu_util": sum(hosts_cpu_load_avg5),
-                "used_radio":
-                    round(1.0 * sum(hosts_cpu_load_avg5) /
-                          len(hosts_cpu_load_avg5), 4)
+                "used_cpu_util": used_radio,
+                "used_radio": used_radio
             }
         except:
             LOG.error("Failed to get metric openstack.hosts.cpu.util")
@@ -329,7 +329,7 @@ class ZabbixController(object):
         try:
             groupids = self.get_openstack_hostgroups()
             filters = {"groupids": groupids}
-            search_key = {"key_": "system.cpu.load[all,avg5]"}
+            search_key = {"key_": "system.cpu.util[,idle]"}
             total_items = self.get_item_by_filters(filters, search_key)
             total_cpus = self._get_item_values(total_items)
             sorted_memory_usage = sorted(total_cpus,
@@ -341,8 +341,10 @@ class ZabbixController(object):
             hosts = self.get_all_hosts({
                         "hostids":
                         hostid_value_map.keys()})['result']
-            top_result = [{host['host']:
-                           hostid_value_map[host['hostid']]} for host in hosts]
+            top_result = [{
+                host['host']:
+                round((100 - hostid_value_map[host['hostid']]),
+                      4)} for host in hosts]
             top_result.sort(cmp=lambda x, y: cmp(x, y),
                             key=lambda x: x.values()[0])
             return top_result
