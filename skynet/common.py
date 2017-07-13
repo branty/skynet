@@ -11,6 +11,8 @@ import sys
 
 
 from ceilometerclient.v2 import client as clm_clientv20
+from keystoneauth1 import session
+from keystoneauth1.identity import v3
 from novaclient import client as nova_client
 
 from skynet import utils
@@ -200,27 +202,28 @@ class OpenStackClients(object):
     def get_novaclient(self):
         """Compute(nova) client
         """
-        # Refactor(Branty)
-        auth_url = self.conf.get_option(
-            'keystone_authtoken',
-            'auth_url')
-        if auth_url.endswith('/v3'):
-            auth_url = auth_url.replace('/v3', '/v2.0')
-        return nova_client.Client(
-            2,
-            self.conf.get_option(
+        auth = v3.Password(
+            auth_url=self.conf.get_option(
+                'keystone_authtoken',
+                'auth_url'),
+            username=self.conf.get_option(
                 'keystone_authtoken',
                 'username'),
-            self.conf.get_option(
+            password=self.conf.get_option(
                 'keystone_authtoken',
                 'password'),
-            self.conf.get_option(
+            project_name=self.conf.get_option(
                 'keystone_authtoken',
                 'project_name'),
-            auth_url,
-            region_name=self.conf.get_option(
+            user_domain_name=self.conf.get_option(
                 'keystone_authtoken',
-                'region_name')
+                'user_domain_name'),
+            project_domain_name=self.conf.get_option(
+                'keystone_authtoken',
+                'project_domain_name'),)
+        return nova_client.Client(
+            2.1,
+            session=session.Session(auth=auth)
             )
 
     def get_ceilometerclient(self):
