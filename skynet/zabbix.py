@@ -24,19 +24,17 @@ def clear(is_all=False):
     VMS_CACHED.clear()
 
 
-class ZabbixController(object):
-    """Zabbix controller send agent history data by socket
+class ZabbixBase(object):
+    """Zabbix Base Class
+
+    Mainly responsible for sending zabbix data by socket
+    Zabbix also has a sender utility 'zabbix_sender'.
+    zabbix_sender: a command line utility for sending monitoring data
+    to Zabbix server or proxy. More details:
+        https://www.zabbix.com/documentation/3.0/manpages/zabbix_sender
     """
-    def __init__(self, conf, mongo_conn):
+    def __init__(self, conf):
         self.conf = conf
-        self.zabbix_host = conf.get_option("zabbix", "zabbix_host")
-        self.zabbix_port = conf.get_option("zabbix", "zabbix_port",
-                                           default=10051)
-        self.zabbix_user = conf.get_option("zabbix", "zabbix_user")
-        self.zabbix_user_pwd = conf.get_option("zabbix", "zabbix_user_pwd")
-        self.auth = self.get_zabbix_auth()
-        self.osk_clients = OpenStackClients(conf)
-        self.mongo_handler = mongo_conn
 
     def set_proxy_head(self, data):
         """simplify constructing the protocol to communicate with Zabbix"""
@@ -79,6 +77,21 @@ class ZabbixController(object):
             data['data'] = payload
         payload = self.set_proxy_head(data)
         self.connect_zabbix(payload)
+
+
+class ZabbixController(ZabbixBase):
+    """Zabbix controller send agent history data by socket
+    """
+    def __init__(self, conf, mongo_conn):
+        super(ZabbixController, self).__init__(conf)
+        self.zabbix_host = conf.get_option("zabbix", "zabbix_host")
+        self.zabbix_port = conf.get_option("zabbix", "zabbix_port",
+                                           default=10051)
+        self.zabbix_user = conf.get_option("zabbix", "zabbix_user")
+        self.zabbix_user_pwd = conf.get_option("zabbix", "zabbix_user_pwd")
+        self.auth = self.get_zabbix_auth()
+        self.osk_clients = OpenStackClients(conf)
+        self.mongo_handler = mongo_conn
 
     def get_zabbix_auth(self):
         """ Get admin credentials (user, password) from Zabbix API
@@ -297,15 +310,22 @@ class ZabbixController(object):
                  float(response['result'][0].get("value", 0.0))))
         return pavais_his
 
-    def create_hosts_top_memory_usage(self, top=5):
+    def create_hosts_top_memory_usage(self):
         try:
+            top = int(self.conf.get_option("skynet", "top", 5))
             groupids = self.get_openstack_hostgroups()
             filters = {"groupids": groupids}
             search_key = {"key_": "vm.memory.size[pavailable]"}
             total_items = self.get_item_by_filters(filters, search_key)
             total_pavais = self._get_item_values(total_items)
-            sorted_memory_usage = sorted(total_pavais,
-                                         key=lambda i: i[1])[:top]
+            if len(total_pavais) > top:
+                sorted_memory_usage = sorted(total_pavais,
+                                             key=lambda i: i[1])[:top]
+            else:
+                LOG.warn("Total num of openstack physical host %d is less then"
+                         "top(%d)" % (len(total_pavais), top))
+                sorted_memory_usage = sorted(total_pavais,
+                                             key=lambda i: i[1])
             hostid_value_map = {}
             top_result = []
             for i in sorted_memory_usage:
@@ -322,18 +342,25 @@ class ZabbixController(object):
                       % top)
             return []
 
-    def create_hosts_top_cpu_util(self, top=5):
+    def create_hosts_top_cpu_util(self):
         """The processor load is calculated as system CPU
            load divided by number of CPU cores.
         """
         try:
+            top = int(self.conf.get_option("skynet", "top", 5))
             groupids = self.get_openstack_hostgroups()
             filters = {"groupids": groupids}
             search_key = {"key_": "system.cpu.util[,idle]"}
             total_items = self.get_item_by_filters(filters, search_key)
             total_cpus = self._get_item_values(total_items)
-            sorted_memory_usage = sorted(total_cpus,
-                                         key=lambda i: i[1])[:top]
+            if len(total_cpus) > top:
+                sorted_memory_usage = sorted(total_cpus,
+                                             key=lambda i: i[1])[:top]
+            else:
+                LOG.warn("Total num of openstack physical host %d is less then"
+                         "top(%d)" % (len(total_cpus), top))
+                sorted_memory_usage = sorted(total_cpus,
+                                             key=lambda i: i[1])
             hostid_value_map = {}
             top_result = []
             for i in sorted_memory_usage:
@@ -463,6 +490,7 @@ class ZabbixController(object):
             "end_timestamp_op": "lt"
         }
         try:
+            top = int(self.conf.get_option("skynet", "top", 5))
             response = self.mongo_handler.get_meter_statistics(
                 sample_filter)
             cache_result = {}
@@ -475,16 +503,23 @@ class ZabbixController(object):
                 key=lambda x: x[1],
                 cmp=lambda x, y: cmp(float(y), float(x)))
             result = list()
-            for rsc in top_vms:
-                try:
-                    if len(result) >= top:
-                        break
-                    rs = {VMS_CACHED[rsc[0]]: rsc[1]}
-                    result.append(rs)
-                except Exception:
-                    # TO DO(Branty)
-                    # Maybe this intance is deleted
-                    LOG.warn("Intance with id %s may be deleted" % rsc[0])
+            if len(top_vms) > top:
+                for rsc in top_vms:
+                    try:
+                        if len(result) >= top:
+                            break
+                        rs = {VMS_CACHED[rsc[0]]: rsc[1]}
+                        result.append(rs)
+                    except Exception:
+                        # TO DO(Branty)
+                        # Maybe this intance is deleted
+                        LOG.warn("Intance with id %s may be deleted" % rsc[0])
+            else:
+                LOG.warn("Total num of openstack nova vms %d is less then"
+                         "top(%d)" % (len(top_vms), top))
+                result.extned(
+                    [{VMS_CACHED[rsc[0]]:rsc[1]} for rsc in top_vms]
+                )
             cache_result.clear()
             return result
         except:
@@ -505,7 +540,7 @@ class ZabbixController(object):
         try:
             alarms = _get_all_alarms(clm_client)
         except:
-            LOG.error("Failed to get openstack all ceilometer alarms")
+            LOG.error("Failed to get all ceilometer alarms")
             return {
                 "total_count": 0,
                 "no_data_count": 0,
