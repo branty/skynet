@@ -28,7 +28,7 @@ class Poller(object):
             self.name = cfg['name']
             self.method = cfg['method']
         except KeyError as err:
-            msg = "Required field %s not specified" % err.args[0], cfg
+            msg = "Required field %s not specified, %s" % (err.args[0], cfg)
             LOG.error(msg)
             raise PipelineException(msg)
 
@@ -70,7 +70,8 @@ class PollerSource(object):
         pollers = set()
         for meter in meters:
             if meter['name'] in pollers:
-                msg = "Duplicated source names: %s, cfg: %s" % meter, self.cfg
+                msg = "Duplicated source names: %s, cfg: %s" % (meter,
+                                                                self.cfg)
                 LOG.error(msg)
                 raise PipelineException(msg)
             else:
@@ -117,7 +118,7 @@ def _setup_polling_manager(cfg_file):
 
     pipeline_cfg = yaml.safe_load(data)
     return PollersManager(pipeline_cfg)
-    LOG.info("Polling config file: %s" % cfg_file)
+    LOG.info("Polling config file %s: %s" % (cfg_file, data))
 
 
 def setup_polling():

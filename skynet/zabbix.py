@@ -199,8 +199,9 @@ class ZabbixController(ZabbixBase):
         groupids = self.get_openstack_hostgroups()
         try:
             response = self.get_all_hosts({"groupids": groupids})
-        except Exception:
-            LOG.error("Failed to get all hosts in hostgroups %s" % groupids)
+        except Exception as e:
+            LOG.error("Failed to get all hosts in hostgroups %s,"
+                      "error message: %s" % (groupids, e.message))
             # Failed to get host, default return None
             return {
                 "total": 0,
@@ -252,8 +253,9 @@ class ZabbixController(ZabbixBase):
                     round(1.0 * (sum_total_mems -
                           sum_ava_mems) / sum_total_mems, 4)
             }
-        except:
-            LOG.error("Failed to get metric openstack.hosts.memory.usage")
+        except Exception as e:
+            LOG.error("Failed to get metric openstack.hosts.memory.usage,"
+                      "error message: %s" % e.message)
             return {
                 "available_mems": 0,
                 "total_mems": 0,
@@ -288,8 +290,9 @@ class ZabbixController(ZabbixBase):
                 "used_cpu_util": used_radio,
                 "used_radio": used_radio
             }
-        except:
-            LOG.error("Failed to get metric openstack.hosts.cpu.util")
+        except Exception as e:
+            LOG.error("Failed to get metric openstack.hosts.cpu.util,"
+                      "error message: %s" % e.message)
             return {
                 "total_cpu_util": 0.0,
                 "used_cpu_util": 0.0,
@@ -337,9 +340,9 @@ class ZabbixController(ZabbixBase):
             top_result.sort(cmp=lambda x, y: cmp(x, y),
                             key=lambda x: x.values()[0])
             return top_result
-        except:
-            LOG.error("Failed to get openstack cluster top%s memory usage"
-                      % top)
+        except Exception as e:
+            LOG.error("Failed to get openstack cluster top%d memory usage,"
+                      "error message: %s" % (top, e.message))
             return []
 
     def create_hosts_top_cpu_util(self):
@@ -375,13 +378,12 @@ class ZabbixController(ZabbixBase):
             top_result.sort(cmp=lambda x, y: cmp(x, y),
                             key=lambda x: x.values()[0])
             return top_result
-        except:
-            LOG.error("Failed to get openstack cluster top%s memory usage"
-                      % top)
+        except Exception as e:
+            LOG.error("Failed to get openstack cluster top%d memory usage,"
+                      "error message: %s" % (top, e.message))
             return []
 
     def _get_all_instances(self, nv_client):
-        global VMS_CACHED
         search_opts = {'all_tenants': True}
         vms = nv_client.servers.list(search_opts=search_opts)
         return vms
@@ -391,8 +393,9 @@ class ZabbixController(ZabbixBase):
         nv_client = self.osk_clients.nv_client
         try:
             instances = self._get_all_instances(nv_client)
-        except:
-            LOG.error("Failed to get openstack all vms")
+        except Exception as e:
+            LOG.error("Failed to get openstack all vms,"
+                      "error message: %s" % e.message)
             return {
                 "total_count": 0,
                 "active_count": 0,
@@ -408,6 +411,8 @@ class ZabbixController(ZabbixBase):
         for i in instances:
             if i.status == "ACTIVE":
                 active_vms.append(i.id)
+                if i.id not in VMS_CACHED:
+                    VMS_CACHED[i.id] = i.name
             elif i.status == "ERROR":
                 error_count += 1
             elif i.status == "SHUTOFF":
@@ -428,8 +433,9 @@ class ZabbixController(ZabbixBase):
         try:
             hyp_stats_stics = self.osk_clients.nv_client.\
                 hypervisor_stats.statistics()
-        except:
-            LOG.error("Failed to get openstack vms memory usage")
+        except Exception as e:
+            LOG.error("Failed to get openstack vms memory usage,"
+                      "error message: %s" % e.message)
             return {
                 "used_memory_mb": 0,
                 "total_memory_mb": 0,
@@ -447,8 +453,9 @@ class ZabbixController(ZabbixBase):
         try:
             hyp_stats_stics = self.osk_clients.nv_client.\
                 hypervisor_stats.statistics()
-        except:
-            LOG.error("Failed to get openstack vpus kernel usage")
+        except Exception as e:
+            LOG.error("Failed to get openstack vpus kernel usage,"
+                      "error message: %s" % e.message)
             return {
                 "used_vcpus_used": 0,
                 "total_vcpus_total": 0,
@@ -468,8 +475,9 @@ class ZabbixController(ZabbixBase):
             try:
                 nv_client = self.osk_clients.nv_client
                 instances = self._get_all_instances(nv_client)
-            except:
-                LOG.error("Failed to get openstack all vms")
+            except Exception as e:
+                LOG.error("Failed to get openstack all vms,"
+                          "error message: %s" % e.message)
                 return []
             active_vms = list()
             for vm in instances:
@@ -511,20 +519,22 @@ class ZabbixController(ZabbixBase):
                         rs = {VMS_CACHED[rsc[0]]: rsc[1]}
                         result.append(rs)
                     except Exception:
-                        # TO DO(Branty)
                         # Maybe this intance is deleted
                         LOG.warn("Intance with id %s may be deleted" % rsc[0])
             else:
-                LOG.warn("Total num of openstack nova vms %d is less then"
+                LOG.warn("Total num of openstack nova vms %d is less than"
                          "top(%d)" % (len(top_vms), top))
-                result.extned(
+                result.extend(
                     [{VMS_CACHED[rsc[0]]:rsc[1]} for rsc in top_vms]
                 )
             cache_result.clear()
+            if len(result) < top:
+                LOG.warn("Total num of openstack nova vms %d is less than"
+                         "top(%d)" % (len(result), top))
             return result
-        except:
-            LOG.error("Failed to get openstack vm top%d %s metric"
-                      % (top, metric))
+        except Exception as e:
+            LOG.error("Failed to get openstack vm top%d %s metric,"
+                      "error message: %s" % (top, metric, e.message))
             return []
 
     def create_vms_top_memory_usage(self):
@@ -539,8 +549,9 @@ class ZabbixController(ZabbixBase):
         clm_client = self.osk_clients.clm_client
         try:
             alarms = _get_all_alarms(clm_client)
-        except:
-            LOG.error("Failed to get all ceilometer alarms")
+        except Exception as e:
+            LOG.error("Failed to get all ceilometer alarms,"
+                      "error message: %s" % e.message)
             return {
                 "total_count": 0,
                 "no_data_count": 0,

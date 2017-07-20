@@ -130,6 +130,15 @@ def get_mapping_file(mp_file):
     return found_file
 
 
+def get_skynet_conf():
+    conf = None
+    for f in CONF_FILES:
+        if os.path.exists(f):
+                conf = f
+                break
+    return conf
+
+
 def parse_metric_json(conf):
     global CACHE_MAPPING_FILE
     mapping_file = conf.get_option("mongodb", "mapping_file",
