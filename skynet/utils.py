@@ -45,3 +45,56 @@ def singleton(cls, *args, **kwags):
             instance[cls] = cls(*args, **kwags)
         return instance[cls]
     return _singleton
+
+
+def calculate_items_usage(hypervisors, item):
+    """Calculate openstack hypervisor item usage
+
+    Due to allocation ratio of virtual CPU to physical CPU, OpenStack VMS can
+    be allocated more resource(such as disk,cpu,memory) than physical.The
+    calculation formula for different items:
+        used_item / (total_item * item_allocation_ratio)
+
+    Note: disabled hypervisors and "ironic" type hypervisors will be filtered
+    @param hypervisors : openstack nova hypervisor instancs
+    @param item: exptected to calculation item
+    """
+    def _sum_item(total, used, hp):
+        if item == "vcpu":
+            total += hp.vcpus * hp.cpu_allocation_ratio
+            used += hp.vcpus_used
+        elif item == "memory":
+            total += hp.memory_mb * hp.ram_allocation_ratio
+            used += hp.memory_mb_used
+        else:
+            # Additional items will be token into considerarion
+            pass
+        return (total, used)
+    item_total = 0
+    item_used = 0
+    item_ratio = 0.0
+    if not isinstance(hypervisors, list):
+        return (item_total, item_used, item_ratio)
+    else:
+        for hp in hypervisors:
+            if hp.hypervisor_type == "ironic":
+                # Due to "ironic" type of hypervisor driver,
+                # Skip to calculate those values
+                continue
+            elif hp.status == "disable":
+                # When the hypervisor is disable,
+                # The total items should be included
+                hp.vcpu_used = 0
+                hp.memory_mb_used = 0
+                item_total, item_used = _sum_item(item_total,
+                                                  item_used,
+                                                  hp)
+            elif hp.state in ["up", "down"]:
+                item_total, item_used = _sum_item(item_total,
+                                                  item_used,
+                                                  hp)
+            else:
+                # Maybe more scenarios should be token into consideration.
+                pass
+    item_ratio = round(item_used / item_total, 4)
+    return (item_total, item_used, item_ratio)

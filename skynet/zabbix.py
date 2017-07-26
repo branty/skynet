@@ -10,18 +10,21 @@ import struct
 import urllib2
 
 from skynet.common import OpenStackClients
+from skynet import utils
 
 
 LOG = logging.getLogger(__name__)
 HOST_CACHED = {}
 
 VMS_CACHED = {}
+HYPERVISOR_DETAILS = []
 
 
 def clear(is_all=False):
     if is_all:
         HOST_CACHED.clear()
     VMS_CACHED.clear()
+    del HYPERVISOR_DETAILS[:]
 
 
 class ZabbixBase(object):
@@ -429,12 +432,34 @@ class ZabbixController(ZabbixBase):
             "paused_count": paused_count
             }
 
-    def create_vms_memory_usage(self):
+    def _get_hypervisor_list_details(self, item):
+        global HYPERVISOR_DETAILS
         try:
-            hyp_stats_stics = self.osk_clients.nv_client.\
-                hypervisor_stats.statistics()
+            HYPERVISOR_DETAILS = self.osk_clients.nv_client.\
+                hypervisors.list(detailed=True)
         except Exception as e:
-            LOG.error("Failed to get openstack vms memory usage,"
+            LOG.error("Failed to get openstack compute hypervisors,"
+                      "skip to poll openstack vms %s usage,"
+                      "error message: %s" % (item, e.message))
+
+    def create_vms_memory_usage(self):
+        global HYPERVISOR_DETAILS
+        if not HYPERVISOR_DETAILS:
+            self._get_hypervisor_list_details("memory")
+            # Failed to get nova hypervisor details
+            if not HYPERVISOR_DETAILS:
+                return {
+                    "used_memory_mb": 0,
+                    "total_memory_mb": 0,
+                    "used_memory_ratio": 0.0
+                }
+        try:
+            (total, used, ratio) = \
+                utils.calculate_items_usage(
+                HYPERVISOR_DETAILS,
+                "memory")
+        except Exception as e:
+            LOG.error("Skip to poll openstack vms memory usage,"
                       "error message: %s" % e.message)
             return {
                 "used_memory_mb": 0,
@@ -442,19 +467,29 @@ class ZabbixController(ZabbixBase):
                 "used_memory_ratio": 0.0
             }
         return {
-            "used_memory_mb": hyp_stats_stics.memory_mb_used,
-            "total_memory_mb": hyp_stats_stics.memory_mb,
-            "used_memory_ratio":
-                round(1.0 * hyp_stats_stics.memory_mb_used /
-                      hyp_stats_stics.memory_mb, 4)
-            }
+            "used_memory_mb": int(used),
+            "total_memory_mb": int(total),
+            "used_memory_ratio": ratio
+        }
 
     def create_vms_vcpu_usage(self):
+        global HYPERVISOR_DETAILS
+        if not HYPERVISOR_DETAILS:
+            self._get_hypervisor_list_details("vcpu")
+            # Failed to get nova hypervisor details
+            if not HYPERVISOR_DETAILS:
+                return {
+                    "used_vcpus_used": 0,
+                    "total_vcpus_total": 0,
+                    "used_vcpus_ratio": 0.0
+                }
         try:
-            hyp_stats_stics = self.osk_clients.nv_client.\
-                hypervisor_stats.statistics()
+            (total, used, ratio) = \
+                utils.calculate_items_usage(
+                HYPERVISOR_DETAILS,
+                "vcpu")
         except Exception as e:
-            LOG.error("Failed to get openstack vpus kernel usage,"
+            LOG.error("Skip to poll openstack vms vcpu usage,"
                       "error message: %s" % e.message)
             return {
                 "used_vcpus_used": 0,
@@ -462,12 +497,10 @@ class ZabbixController(ZabbixBase):
                 "used_vcpus_ratio": 0.0
             }
         return {
-            "used_vcpus_used": hyp_stats_stics.vcpus_used,
-            "total_vcpus_total": hyp_stats_stics.vcpus,
-            "used_vcpus_ratio":
-                round(1.0 * hyp_stats_stics.vcpus_used /
-                      hyp_stats_stics.vcpus, 4)
-            }
+            "used_vcpus_used": used,
+            "total_vcpus_total": int(total),
+            "used_vcpus_ratio": ratio
+        }
 
     def get_vms_top_metric(self, metric, top=5, windows=3):
         global VMS_CACHED
