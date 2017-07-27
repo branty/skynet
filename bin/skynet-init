@@ -1,0 +1,491 @@
+#!/usr/bin/env python
+#
+#    Copyright  2017 EasyStack, Inc
+#    Authors: Branty <jun.wang@easystack.cn>
+#
+
+from __future__ import unicode_literals
+import argparse
+import copy
+import glob
+import logging
+import json
+import os
+from random import choice
+import string
+import sys
+
+import requests
+
+from skynet.common import CONF
+from skynet.exceptions import SkynetException
+
+conf = CONF()
+ARGS = None
+ZBX_HDL = None
+
+RULES = {
+    'applications': {
+        'createMissing': 'true',
+    },
+    'discoveryRules': {
+        'createMissing': 'true',
+        'updateExisting': 'true'
+    },
+    'graphs': {
+        'createMissing': 'true',
+        'updateExisting': 'true'
+    },
+    'groups': {
+        'createMissing': 'true'
+    },
+    'images': {
+        'createMissing': 'true',
+        'updateExisting': 'true'
+    },
+    'items': {
+        'createMissing': 'true',
+        'updateExisting': 'true'
+    },
+    'maps': {
+        'createMissing': 'true',
+        'updateExisting': 'true'
+    },
+    'screens': {
+        'createMissing': 'true',
+        'updateExisting': 'true'
+    },
+    'templateLinkage': {
+        'createMissing': 'true'
+    },
+    'templates': {
+        'createMissing': 'true',
+        'updateExisting': 'true'
+    },
+    'templateScreens': {
+        'createMissing': 'true',
+        'updateExisting': 'true'
+    },
+    'triggers': {
+        'createMissing': 'true',
+        'updateExisting': 'true'
+    },
+}
+
+ACTION_RULES = {
+    "name": "",
+    "eventsource": 2,
+    "def_shortdata":"Auto registration: {HOST.HOST}",
+    "def_longdata": "Host name: {HOST.HOST}\r\nHost IP: {HOST.IP}\r\nAgent port: {HOST.PORT}",
+    "filter": {
+            "evaltype": 0,
+            "conditions": []
+    },
+    "operations": []
+}
+
+
+def cmd_parse():
+    global ARGS
+    parser = argparse.ArgumentParser(
+        description='This is a simple script to initialize  skeynet')
+    parser.add_argument('--templates-dir',
+                        help='Directory to find skynet zabbix templates.',
+                        default='/etc/skynet')
+    parser.add_argument('--config-file',
+                         help='The skynet configuration',
+                         default="/etc/skynet/skynet.conf")
+    parser.add_argument('--debug',
+                         help='Enable debug mode,default is True',
+                        action="store_true")
+    parser.add_argument('--db_admin_user',
+                        help='Skynet db admin user',
+                        required=True)
+    parser.add_argument('--db_admin_pwd',
+                        help='Skynet db admin password',
+                        required=True)
+    ARGS = parser.parse_args()
+
+
+def init_log():
+    """Parse CMD parameter
+    """
+    log_dir = conf.get_option("DEFAULT", "log_dir","/var/log/skynet")
+    log_file = conf.get_option("DEFAULT", "log_file","skynet.log")
+    log_file = os.path.join(log_dir, log_file)
+    if not os.path.exists(log_file):
+        print "Skynet log %s not found." % log_file
+        raise
+    logging.basicConfig(level=logging.DEBUG,
+                format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
+                datefmt='%a, %d %b %Y %H:%M:%S',
+                filename=os.path.abspath(log_file),
+                filemode='w')
+
+
+def init_zbx():
+    global ZBX_HDL
+    user = conf.get_option("zabbix", "zabbix_user", "Admin")
+    pwd = conf.get_option("zabbix", "zabbix_user_pwd", "zabbix")
+    host = conf.get_option("zabbix", "zabbix_host", "127.0.0.1")
+    web_port = conf.get_option("zabbix", "zabbix_web_port", 80)
+    ZBX_HDL = ZabbixAPI(host, web_port)
+    ZBX_HDL.login(user, pwd)
+
+
+def import_tempetes():
+    templets = ARGS.templates_dir
+    if not templets:
+        msg = "Templates dir %s not found" % templates
+        logging.error(msg)
+        raise SkynetException(msg)
+    xmls = glob.glob(os.path.join(templets, "*.xml"))
+    logging.info("************Starting to import zabbix templates************")
+    for xml in xmls:
+        with open(xml, 'r') as f:
+            ZBX_HDL.config_import("xml", f.read(), RULES)
+    logging.info("************Success to import zabbix templates************")
+
+def add_auto_registration():
+    groups = conf.get_option("skynet", "groups", "Controller,Computer")
+    controllers_tpls = conf.get_option("skynet", "controllers_tpls")
+    computers_tpls = conf.get_option("skynet", "computers_tpls")
+    if not groups or len(groups.split(",")) !=2:
+        msg = "configuration groups under section [skynet] is invalid"
+        logging.error(msg)
+        raise SkynetException(msg)
+    groups = [ gp.strip()for gp in groups.split(",")]
+    result = ZBX_HDL.get_hostgroupid(groups, True)
+    con_gpids = list()
+    com_gpids = list()
+    for gp in result:
+        # TO DO(Branty), Not flexible
+        if gp['name'] == "Controller":
+            con_gpids.append(gp['groupid'])
+        elif gp['name'] == "Computer":
+            com_gpids.append(gp['groupid'])
+        else:
+            # TO DO(Branty)
+            pass
+    con_tpls = list()
+    com_tpls = list()
+    controllers_tpls = [tp.strip() for tp in controllers_tpls.split(",")]
+    computers_tpls = [tp.strip() for tp in computers_tpls.split(",")]
+    response = ZBX_HDL.get_templateids(controllers_tpls)
+    if not response:
+        msg = "configuration controllers_tpls under section [skynet] are not found"
+        logging.error(msg)
+        raise SkynetException(msg)
+    for tp in response:
+        con_tpls.append(tp['templateid'])
+    response = ZBX_HDL.get_templateids(computers_tpls)
+    if not response:
+        msg = "configuration comtuters_tpls under section [skynet] are not found"
+        logging.error(msg)
+        raise SkynetException(msg)
+    for tp in response:
+        com_tpls.append(tp['templateid'])
+    logging.info("**********Starting Zabbix Auto-Registration Rules**********")
+    # Creating Controllers Rules
+    ZBX_HDL.auto_registration("Controllers",
+                              ["Escloud Controller_host"],
+                              con_gpids,
+                              con_tpls)
+    # Creating Computers Rules
+    ZBX_HDL.auto_registration("Computers",
+                              ["Escloud Computer_host"],
+                              com_gpids,
+                              com_tpls)
+    logging.info("*********Success  to import Auto-Registration Rules*********")
+
+
+def create_zbx_admin_user():
+    admusr = ARGS.db_admin_user
+    pwd = ARGS.db_admin_pwd
+    if not admusr or not pwd:
+        logging.error("******* Skynet db admin or db password is empty*******")
+        raise
+    logging.info("******* Starting to create skynet zabixx admin user *******")
+    ZBX_HDL.create_zbx_admusr(admusr, pwd)
+    logging.info("******* Success to create skynet zabixx admin user *******")
+
+
+class ZabbixAPI(object):
+    def __init__(self,
+                 server="127.0.0.1",
+                 port=80,
+                 session=None,
+                 use_authenticate=False,
+                 timeout=None):
+        if session:
+            self.session = session
+        else:
+            self.session = requests.Session()
+
+        # Default headers for all requests
+        self.session.headers.update({
+            'Content-Type': 'application/json-rpc',
+            'User-Agent': 'python/pyzabbix',
+            'Cache-Control': 'no-cache'
+        })
+
+        self.use_authenticate = use_authenticate
+        self.auth = ''
+        self.id = 0
+
+        self.timeout = timeout
+
+        self.url = "http://%s:%s/zabbix/api_jsonrpc.php" % (server, port)
+        logging.info("JSON-RPC Server Endpoint: %s", self.url)
+
+    def login(self, user='', password=''):
+        """Convenience method for calling user.authenticate and storing the resulting auth token
+        for further commands.
+
+        If use_authenticate is set, it uses the older (Zabbix 1.8) authentication command
+        :param password: Password used to login into Zabbix
+        :param user: Username used to login into Zabbix
+        """
+
+        # If we have an invalid auth token, we are not allowed to send a login
+        # request. Clear it before trying.
+        self.auth = ''
+        if self.use_authenticate:
+            self.auth = self.user.authenticate(user=user, password=password)
+        else:
+            self.auth = self.user.login(user=user, password=password)
+
+    def config_import(self, confformat='', source='', rules=''):
+        """Alias for configuration.import because it clashes with
+           Python's import reserved keyword
+
+        :param rules:
+        :param source:
+        :param confformat:
+        """
+
+        return self.do_request(
+            method="configuration.import",
+            params={"format": confformat, "source": source, "rules": rules}
+        )['result']
+
+    def auto_registration(self, name, conditions, groupids, templateids):
+        """Alias for auto.registration because it clashes with
+        Python's import reserved keyword
+
+        :param rules:
+        :param source:
+        :param confformat:
+        """
+        if not (isinstance(conditions,list) and
+                isinstance(groupids, list) and
+                isinstance(templateids,list)):
+             # TO DO(Branty), Details messages
+             raise SkynetException(
+                "Unable to create auto_registration rules"
+            )
+        params = copy.deepcopy(ACTION_RULES)
+        params['name'] = name
+        for con in conditions:
+            params['filter']['conditions'].append(
+                {"conditiontype": 24,
+                 "operator": 2,
+                 "value": con})
+        ogps = list()
+        for gp in groupids:
+            ogps.append({"groupid": gp})
+        params['operations'].append(
+            {"operationtype": 4,
+             "opgroup":  ogps})
+        ogps = list()
+        for tp in templateids:
+            ogps.append({"templateid": tp})
+        params['operations'].append(
+            {"operationtype": 6,
+             "optemplate":  ogps})
+        return self.do_request(
+            method="action.create",
+            params=params
+        )
+
+    def get_hostgroupid(self,hpnames, iscreated=False):
+        """Alias for auto.registration because it clashes with
+           Python's import reserved keyword
+
+        :param hpname: zabbix hostgroup name
+        :param iscreated: when hostgroup is not found ,automatically create it
+        """
+        if  iscreated:
+            hp_resonses = list()
+            for hp in hpnames:
+                result = self.do_request(
+                    method="hostgroup.get",
+                    params={"output": "extend","filter":{"name": hp}}
+                )['result']
+                if not result:
+                  response = self.do_request(
+                      method="hostgroup.create",
+                      params={"name": hp})['result']
+                  hp_resonses.append({"groupid": response[groupids][0], "name": hp})
+                else:
+                  hp_resonses.append(result[0])
+            return  hp_resonses
+
+        else:
+            return self.do_request(
+                method="hostgroup.get",
+                params={"output": "extend","filter":{"name": hpnames}}
+            )['result']
+
+    def get_templateids(self, templates):
+        """Get Zabbix templates
+
+        :param templates:
+        """
+
+        return self.do_request(
+            method="template.get",
+            params={"output": "extend","filter": {"name": templates}}
+        )['result']
+
+    def create_zbx_admusr(self, username, password):
+        # Get all user group
+        result =  self.do_request(
+            method="usergroup.get",
+            params={"output": "extend"}
+        )['result']
+        usrgrpid = ""
+        for up in result:
+            if up['name'] == "Zabbix administrators":
+                usrgrpid = up['usrgrpid']
+                break
+        if not usrgrpid:
+            msg = "User group(Zabbix administrators) is not found"
+            logging.error(msg)
+            raise SkynetException(msg)
+        params = {
+            "name": username,
+            "surname": "Admin",
+            "alias": username,
+            "passwd": password,
+            "type": "3",
+            "usrgrps": [{"usrgrpid": usrgrpid}]
+        }
+        return self.do_request(
+            method="user.create",
+            params=params
+        )['result']
+
+    def api_version(self):
+        return self.apiinfo.version()
+
+    def do_request(self, method, params=None):
+        request_json = {
+            'jsonrpc': '2.0',
+            'method': method,
+            'params': params or {},
+            'id': self.id,
+        }
+
+        # We don't have to pass the auth token if asking for the apiinfo.version
+        if self.auth and method != 'apiinfo.version':
+            request_json['auth'] = self.auth
+
+        logging.debug("Sending: %s", json.dumps(request_json,
+                                               indent=4,
+                                               separators=(',', ': ')))
+        response = self.session.post(
+            self.url,
+            data=json.dumps(request_json),
+            timeout=self.timeout
+        )
+        logging.debug("Response Code: %s", str(response.status_code))
+
+        # NOTE: Getting a 412 response code means the headers are not in the
+        # list of allowed headers.
+        response.raise_for_status()
+
+        if not len(response.text):
+            raise SkynetException("Received empty response")
+
+        try:
+            response_json = json.loads(response.text)
+        except ValueError:
+            raise SkynetException(
+                "Unable to parse json: %s" % response.text
+            )
+        logging.debug("Response Body: %s", json.dumps(response_json,
+                                                     indent=4,
+                                                     separators=(',', ': ')))
+
+        self.id += 1
+
+        if 'error' in response_json:
+            if 'data' not in response_json['error']:
+                response_json['error']['data'] = "No data"
+            msg = "Error {code}: {message}, {data}".format(
+                code=response_json['error']['code'],
+                message=response_json['error']['message'],
+                data=response_json['error']['data']
+            )
+            raise SkynetException(msg, response_json['error']['code'])
+
+        return response_json
+
+    def __getattr__(self, attr):
+        """Dynamically create an object class (ie: host)"""
+        return ZabbixAPIObjectClass(attr, self)
+
+
+class ZabbixAPIObjectClass(object):
+    def __init__(self, name, parent):
+        self.name = name
+        self.parent = parent
+
+    def __getattr__(self, attr):
+        """Dynamically create a method (ie: get)"""
+
+        def fn(*args, **kwargs):
+            if args and kwargs:
+                raise TypeError("Found both args and kwargs")
+
+            return self.parent.do_request(
+                '{0}.{1}'.format(self.name, attr),
+                args or kwargs
+            )['result']
+
+        return fn
+
+
+def main():
+    global ZBX_HDL
+    try:
+        # parse cmd parameters
+        cmd_parse()
+
+        # initialize logging module
+        init_log()
+
+        # initialize zabbix handler
+        init_zbx()
+
+        # import skynet xml templates
+        import_tempetes()
+
+        # Add zabbix auto registration rules
+        add_auto_registration()
+
+        # Create Zabbix DB skynet user
+        create_zbx_admin_user()
+
+        logging.info("********** Initialization of Skynet is done **********")
+    except SkynetException as e:
+        logging.error(e.message)
+        raise
+    except Exception as e:
+        logging.error(e.message)
+        raise
+
+
+if __name__ == "__main__":
+    sys.exit(main())

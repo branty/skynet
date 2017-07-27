@@ -9,8 +9,8 @@
     </groups>
     <templates>
         <template>
-            <template>3. Template OpenStack</template>
-            <name>3. Template OpenStack</name>
+            <template>Skynet Template</template>
+            <name>Skynet Template</name>
             <description/>
             <groups>
                 <group>

@@ -8,7 +8,7 @@ setup(
     author="Branty",
     author_email="jun.wang@easystack.cn",
     packages=find_packages(),
-    scripts=['bin/skynet_polling'],
+    scripts=['bin/skynet_polling', 'bin/skynet-init'],
     url="www.easystack.cn",
     description="A Timer task for polling/creating new"
                 "zabbix/openstack metrics into zabbix"
