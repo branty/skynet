@@ -114,8 +114,9 @@ def init_log():
     log_file = conf.get_option("DEFAULT", "log_file","skynet.log")
     log_file = os.path.join(log_dir, log_file)
     if not os.path.exists(log_file):
-        print "Skynet log %s not found." % log_file
-        raise
+        print "Skynet log %(log_file)s not found.Automatically create "\
+              "log file: %(log_file)s" % {"log_file": log_file}
+        open(x, 'a').close()
     logging.basicConfig(level=logging.DEBUG,
                 format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
                 datefmt='%a, %d %b %Y %H:%M:%S',
@@ -147,30 +148,32 @@ def import_tempetes():
     logging.info("************Success to import zabbix templates************")
 
 def add_auto_registration():
-    groups = conf.get_option("skynet", "groups", "Controller,Computer")
+    groups = conf.get_option("skynet", "groups", "Controller,Computer,Storage")
     controllers_tpls = conf.get_option("skynet", "controllers_tpls")
     computers_tpls = conf.get_option("skynet", "computers_tpls")
-    if not groups or len(groups.split(",")) !=2:
-        msg = "configuration groups under section [skynet] is invalid"
-        logging.error(msg)
-        raise SkynetException(msg)
+    storage_tpls = conf.get_option("skynet", "default_tpls")
     groups = [ gp.strip()for gp in groups.split(",")]
     result = ZBX_HDL.get_hostgroupid(groups, True)
     con_gpids = list()
     com_gpids = list()
+    sto_gpids = list()
     for gp in result:
         # TO DO(Branty), Not flexible
         if gp['name'] == "Controller":
             con_gpids.append(gp['groupid'])
         elif gp['name'] == "Computer":
             com_gpids.append(gp['groupid'])
+        elif gp['name'] == "Storage":
+            sto_gpids.append(gp['groupid'])
         else:
             # TO DO(Branty)
             pass
     con_tpls = list()
     com_tpls = list()
+    sto_tpls = list()
     controllers_tpls = [tp.strip() for tp in controllers_tpls.split(",")]
     computers_tpls = [tp.strip() for tp in computers_tpls.split(",")]
+    storage_tpls = [tp.strip() for tp in storage_tpls.split(",")]
     response = ZBX_HDL.get_templateids(controllers_tpls)
     if not response:
         msg = "configuration controllers_tpls under section [skynet] are not found"
@@ -185,6 +188,13 @@ def add_auto_registration():
         raise SkynetException(msg)
     for tp in response:
         com_tpls.append(tp['templateid'])
+    response = ZBX_HDL.get_templateids(storage_tpls)
+    if not response:
+        msg = "configuration comtuters_tpls under section [skynet] are not found"
+        logging.error(msg)
+        raise SkynetException(msg)
+    for tp in response:
+        sto_tpls.append(tp['templateid'])
     logging.info("**********Starting Zabbix Auto-Registration Rules**********")
     # Creating Controllers Rules
     ZBX_HDL.auto_registration("Controllers",
@@ -196,6 +206,11 @@ def add_auto_registration():
                               ["Escloud Computer_host"],
                               com_gpids,
                               com_tpls)
+    # Creating Storage Rules
+    ZBX_HDL.auto_registration("Storage",
+                              ["Escloud Storage_host"],
+                              sto_gpids,
+                              sto_tpls)
     logging.info("*********Success  to import Auto-Registration Rules*********")
 
 
@@ -284,6 +299,15 @@ class ZabbixAPI(object):
              raise SkynetException(
                 "Unable to create auto_registration rules"
             )
+        # when exists,skip to poll metrics
+        response = self.do_request(
+            method="action.get",
+            params={"output": "extend","filter":{"name": name}}
+        )['result']
+        if response:
+            logging.info("Zabbix action rule %s already exists,skip to "
+                         "create a new action rule" % name)
+            return
         params = copy.deepcopy(ACTION_RULES)
         params['name'] = name
         for con in conditions:
@@ -326,7 +350,7 @@ class ZabbixAPI(object):
                   response = self.do_request(
                       method="hostgroup.create",
                       params={"name": hp})['result']
-                  hp_resonses.append({"groupid": response[groupids][0], "name": hp})
+                  hp_resonses.append({"groupid": response["groupids"][0], "name": hp})
                 else:
                   hp_resonses.append(result[0])
             return  hp_resonses
@@ -349,6 +373,15 @@ class ZabbixAPI(object):
         )['result']
 
     def create_zbx_admusr(self, username, password):
+        # when exists, skip to create a new user
+        response =  self.do_request(
+            method="user.get",
+            params={"output": "extend","filter":{"name": username}}
+        )['result']
+        if response:
+            logging.info("Zabbix admin user %s  already exists,skip to "
+                         "create a new admin user" % username)
+            return
         # Get all user group
         result =  self.do_request(
             method="usergroup.get",
