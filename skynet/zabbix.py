@@ -8,15 +8,24 @@ import socket
 import struct
 import urllib2
 
+from skynet.common import CONF
+from skynet import exceptions
 from skynet.common import OpenStackClients
 from skynet import utils
 
 
 LOG = logging.getLogger(__name__)
-HOST_CACHED = {}
 
+HOST_CACHED = {}
 VMS_CACHED = {}
 HYPERVISOR_DETAILS = []
+
+
+Conf = CONF()
+ZBX_MAX_RETRIES = int(Conf.get_option('zabbix', 'http_max_retries', 3))
+ZBX_MAX_RETRIES_INTERVAL = int(Conf.get_option('zabbix',
+                                               'http_retries_interval',
+                                               5))
 
 
 def clear(is_all=False):
@@ -36,6 +45,9 @@ class ZabbixBase(object):
         https://www.zabbix.com/documentation/3.0/manpages/zabbix_sender
     """
     def __init__(self, conf):
+        self.zabbix_host = conf.get_option("zabbix", "zabbix_host")
+        self.zabbix_port = conf.get_option("zabbix", "zabbix_port",
+                                           default=10051)
         self.conf = conf
 
     def set_proxy_head(self, data):
@@ -86,11 +98,9 @@ class ZabbixController(ZabbixBase):
     """
     def __init__(self, conf, mongo_conn):
         super(ZabbixController, self).__init__(conf)
-        self.zabbix_host = conf.get_option("zabbix", "zabbix_host")
-        self.zabbix_port = conf.get_option("zabbix", "zabbix_port",
-                                           default=10051)
         self.zabbix_user = conf.get_option("zabbix", "zabbix_user")
         self.zabbix_user_pwd = conf.get_option("zabbix", "zabbix_user_pwd")
+        self.zabbix_web_port = conf.get_option("zabbix", "zabbix_web_port")
         self.auth = self.get_zabbix_auth()
         self.osk_clients = OpenStackClients(conf)
         self.mongo_handler = mongo_conn
@@ -105,11 +115,23 @@ class ZabbixController(ZabbixBase):
                    "id": 2}
         response = self.call_zabbix_api(payload)
         if "error" in response:
-            LOG.error("Incorrect user or password, please check it again")
+            msg = "Incorrect user or password, please check it again"
+            LOG.error(msg)
+            raise exceptions.ZabbixAuthError(msg)
         return response['result']
 
+    def is_active(self):
+        """check zabbix status"""
+        try:
+            self.get_zabbix_auth()
+        except Exception as err:
+            LOG.error("Zabbix server is useless. err:%s" % err.message)
+            return False
+        return True
+
     def call_zabbix_api(self, payload):
-        url = "http://%s/zabbix/api_jsonrpc.php" % self.zabbix_host
+        url = "http://%s:%s/zabbix/api_jsonrpc.php" % (self.zabbix_host,
+                                                       self.zabbix_web_port)
         data = json.dumps(payload)
         req = urllib2.Request(url, data, {'Content-Type': 'application/json'})
         f = urllib2.urlopen(req)
@@ -606,3 +628,9 @@ class ZabbixController(ZabbixBase):
             "alarm_count": alarm_count,
             "ok_count": ok_count
         }
+
+
+@utils.retry(stop_max_attemp_number=ZBX_MAX_RETRIES,
+             stop_max_delay=ZBX_MAX_RETRIES_INTERVAL)
+def get_zbx_handler(conf=None, mongo_conn=None):
+    return ZabbixController(conf, mongo_conn)

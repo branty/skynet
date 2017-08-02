@@ -31,3 +31,13 @@ class PipelineException(SkynetException):
 class PipelineFileNotFound(SkynetException):
     """Not found about skynet pipline file"""
     pass
+
+
+class ZabbixAuthError(SkynetException):
+    """Incorrect user or password, please check it again"""
+    pass
+
+
+class NotImplementsError(SkynetException):
+    """Method is not implemented"""
+    pass

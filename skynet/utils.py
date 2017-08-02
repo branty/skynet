@@ -1,5 +1,15 @@
 #  Copyright  2017 EasyStack, Inc
 
+import logging
+import time
+
+import six
+
+from skynet import exceptions
+
+
+LOG = logging.getLogger(__name__)
+
 
 def singleton(cls, *args, **kwags):
     """The basic singleton pattern
@@ -97,3 +107,86 @@ def calculate_items_usage(hypervisors, item):
                 pass
     item_ratio = round(item_used / item_total, 4)
     return (item_total, item_used, item_ratio)
+
+
+class Retry(object):
+
+    def __init__(self,
+                 stop_max_attemp_number=None,
+                 stop_max_delay=None):
+        self.stop_max_attemp_number = 3 if stop_max_attemp_number is\
+            None else stop_max_attemp_number
+        self.stop_max_delay = 5 if stop_max_delay is\
+            None else stop_max_delay
+
+    def call(self, func, *args, **kwargs):
+        """when Failed, Retry the executed func as you need"""
+        raise exceptions.NotImplementsError(
+                "Retry function is not implemented")
+
+
+class ZabbixRetry(Retry):
+
+    def __init__(self,
+                 stop_max_attemp_number=None,
+                 stop_max_delay=None):
+        super(ZabbixRetry, self).__init__(stop_max_attemp_number,
+                                          stop_max_delay)
+
+    def call(self, func, *args, **kwargs):
+        attempt_times = 1
+        conf = kwargs.get('conf')
+        while True:
+            try:
+                zbx_handler = func(
+                    conf,
+                    kwargs.get('mongo_conn'))
+            except Exception as err:
+                if self.stop_max_attemp_number > 0 and attempt_times\
+                  > self.stop_max_attemp_number:
+                    LOG.error('Unable to connect to the zabbix server(host: '
+                              '%(host)s, port: %(port)s) after %(retries)d '
+                              'retries. Giving up.'
+                              % {'retries': self.stop_max_attemp_number,
+                                 'host': conf.get_option("zabbix",
+                                                         "zabbix_host"),
+                                 'port': conf.get_option('zabbix',
+                                                         'zabbix_web_port')})
+                    raise
+                LOG.warn('Unable to connect to the zabbix server(%(host)s,'
+                         'port: %(port)s): %(errmsg)s. Trying again in '
+                         '%(retry_interval)d seconds.'
+                         % {'host': conf.get_option('zabbix', 'zabbix_host'),
+                            'port': conf.get_option('zabbix',
+                                                    'zabbix_web_port'),
+                            'errmsg': err,
+                            'retry_interval': self.stop_max_delay})
+                attempt_times += 1
+                time.sleep(self.stop_max_delay)
+            else:
+                # Success and return connection
+                return zbx_handler
+
+
+def retry(*dargs, **dkw):
+    """ Decorator function that instantiates the Retrying object
+
+    @param *dargs: positional arguments passed to Retrying object
+    @param **dkw: keyword arguments passed to the Retrying object
+
+    """
+    # support both @retry and @retry() as valid syntax
+    if len(dargs) == 1 and callable(dargs[0]):
+        def wrap_simple(f):
+
+            @six.wraps(f)
+            def wrapped_f(*args, **kw):
+                return ZabbixRetry().call(f, *args, **kw)
+            return wrapped_f
+        return wrap_simple(dargs[0])
+    else:
+        def wrap(f):
+            def wrapped_f(*args, **kw):
+                return ZabbixRetry(*dargs, **dkw).call(f, *args, **kw)
+            return wrapped_f
+        return wrap

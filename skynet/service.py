@@ -13,7 +13,6 @@ from skynet.common import CONF as skynet_CONF
 from skynet.mongodb import Connection as MONGO_CONN
 from skynet import pipline
 from skynet import zabbix
-from skynet.zabbix import ZabbixController
 
 
 LOG = logging.getLogger(__name__)
@@ -22,9 +21,10 @@ conf = skynet_CONF()
 
 
 class AgentManager(os_service.Service):
-    def __init__(self, conf, zabbix_hdl, pollers_mg):
+    def __init__(self, conf, mongo_conn, zabbix_hdl, pollers_mg):
         super(AgentManager, self).__init__()
         self.conf = conf
+        self.mongo_conn = mongo_conn
         self.zabbix_hdl = zabbix_hdl
         self.pollers_mg = pollers_mg
 
@@ -39,6 +39,12 @@ class AgentManager(os_service.Service):
         LOG.info("Staring to poll metrics: %s", [i.name for i in pollers])
         start = time.time()
         try:
+            # check zabbix server status in every polling period
+            if not self.zabbix_hdl.is_active():
+                LOG.warn("Unable to connect to zabbix server,Retry to "
+                         "create a new connection")
+                self.zabbix_hdl = zabbix.get_zbx_handler(self.conf,
+                                                         self.mongo_conn)
             for poller in pollers:
                 method = poller.method
                 LOG.info("Polling pollster %s in the context of %s"
@@ -90,14 +96,14 @@ def prepare_service():
          default_config_files=[skynet_conf])
     log.setup(CONF, 'skynet')
     mongo_conn = MONGO_CONN(conf)
-    zabbix_hdl = ZabbixController(conf, mongo_conn)
+    zabbix_hdl = zabbix.get_zbx_handler(conf=conf, mongo_conn=mongo_conn)
     pollers_manager = pipline.setup_polling()
-    return (zabbix_hdl, pollers_manager)
+    return (zabbix_hdl, mongo_conn, pollers_manager)
 
 
 def main():
     # Before starting service,prepare to check something ready.
-    zabbix_handler, pollers_manager = prepare_service()
+    zabbix_handler, mongo_conn, pollers_manager = prepare_service()
     LOG.info("********** Starting Skynet Polling Task **********")
-    os_service.launch(CONF, AgentManager(conf, zabbix_handler,
+    os_service.launch(CONF, AgentManager(conf, mongo_conn, zabbix_handler,
                                          pollers_manager)).wait()
