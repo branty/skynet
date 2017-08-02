@@ -1,5 +1,4 @@
 #  Copyright  2017 EasyStack, Inc
-#  Author: Branty<jun.wang@easystack.cn>
 
 import logging
 import os

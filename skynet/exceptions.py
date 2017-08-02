@@ -1,5 +1,4 @@
-#    Copyright  2017 EasyStack, Inc
-#    Authors: Branty <jun.wang@easystack.cn>
+#  Copyright  2017 EasyStack, Inc
 
 
 """Exception definitions."""
