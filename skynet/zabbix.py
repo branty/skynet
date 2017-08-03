@@ -22,10 +22,10 @@ HYPERVISOR_DETAILS = []
 
 
 Conf = CONF()
-ZBX_MAX_RETRIES = int(Conf.get_option('zabbix', 'http_max_retries', 3))
+ZBX_MAX_RETRIES = int(Conf.get_option('zabbix', 'http_max_retries', 5))
 ZBX_MAX_RETRIES_INTERVAL = int(Conf.get_option('zabbix',
                                                'http_retries_interval',
-                                               5))
+                                               8))
 
 
 def clear(is_all=False):

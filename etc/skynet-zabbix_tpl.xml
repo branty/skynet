@@ -1,8 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>3.0</version>
-    <date>2017-07-12T09:40:51Z</date>
+    <date>2017-08-03T03:06:12Z</date>
+    <hosts>
+        <host>
+            <groups>
+                <group>
+                    <name>ESCloud Skynet</name>
+                </group>
+            </groups>
+            <templates>
+                <template>
+                    <name>Skynet Template</name>
+                </template>
+            </templates>
+            <description>Skynet fake host</description>
+            <host>Skynet Host</host>
+            <name>Skynet Host</name>
+            <ipmi_authtype>-1</ipmi_authtype>
+            <ipmi_privilege>2</ipmi_privilege>
+            <ipmi_username/>
+            <ipmi_password/>
+            <tls_connect>1</tls_connect>
+            <tls_accept>1</tls_accept>
+            <tls_issuer/>
+            <tls_subject/>
+            <tls_psk_identity/>
+            <tls_psk/>
+            <proxy/>
+             <interfaces>
+                <interface>
+                    <default>1</default>
+                    <type>1</type>
+                    <useip>1</useip>
+                    <ip>127.0.0.1</ip>
+                    <dns/>
+                    <bulk/>
+                    <port>10050</port>
+                    <interface_ref/>
+                </interface>
+            </interfaces>
+            <status>0</status>
+        </host>
+    </hosts>
     <groups>
+        <group>
+            <name>ESCloud Skynet</name>
+        </group>
         <group>
             <name>Templates</name>
         </group>
@@ -13,6 +57,9 @@
             <name>Skynet Template</name>
             <description/>
             <groups>
+                <group>
+                    <name>ESCloud Skynet</name>
+                </group>
                 <group>
                     <name>Templates</name>
                 </group>

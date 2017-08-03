@@ -25,7 +25,7 @@ ZBX_HDL = None
 
 RULES = {
     'applications': {
-        'createMissing': 'true',
+        'createMissing': 'true'
     },
     'discoveryRules': {
         'createMissing': 'true',
@@ -36,6 +36,9 @@ RULES = {
         'updateExisting': 'true'
     },
     'groups': {
+        'createMissing': 'true'
+    },
+    'hosts': {
         'createMissing': 'true'
     },
     'images': {
@@ -115,7 +118,7 @@ def init_log():
     if not os.path.exists(log_file):
         print "Skynet log %(log_file)s not found.Automatically create "\
               "log file: %(log_file)s" % {"log_file": log_file}
-        open(x, 'a').close()
+        open(log_file, 'a').close()
     logging.basicConfig(level=logging.DEBUG,
                 format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
                 datefmt='%a, %d %b %Y %H:%M:%S',

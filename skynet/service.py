@@ -34,7 +34,8 @@ class AgentManager(os_service.Service):
         """
         fake_openstack_hostname = self.conf.get_option(
             "skynet",
-            "fake_openstack_hostname")
+            "fake_openstack_hostname",
+            "Skynet Host")
         zabbix_data = list()
         LOG.info("Staring to poll metrics: %s", [i.name for i in pollers])
         start = time.time()
@@ -43,8 +44,9 @@ class AgentManager(os_service.Service):
             if not self.zabbix_hdl.is_active():
                 LOG.warn("Unable to connect to zabbix server,Retry to "
                          "create a new connection")
-                self.zabbix_hdl = zabbix.get_zbx_handler(self.conf,
-                                                         self.mongo_conn)
+                self.zabbix_hdl = zabbix.get_zbx_handler(
+                    conf=self.conf,
+                    mongo_conn=self.mongo_conn)
             for poller in pollers:
                 method = poller.method
                 LOG.info("Polling pollster %s in the context of %s"
