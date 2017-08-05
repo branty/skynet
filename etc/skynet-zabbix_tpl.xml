@@ -6,17 +6,17 @@
         <host>
             <groups>
                 <group>
-                    <name>ESCloud Skynet</name>
+                    <name>openstack</name>
                 </group>
             </groups>
             <templates>
                 <template>
-                    <name>Skynet Template</name>
+                    <name>3. Template OpenStack</name>
                 </template>
             </templates>
             <description>Skynet fake host</description>
-            <host>Skynet Host</host>
-            <name>Skynet Host</name>
+            <host>openstack</host>
+            <name>openstack</name>
             <ipmi_authtype>-1</ipmi_authtype>
             <ipmi_privilege>2</ipmi_privilege>
             <ipmi_username/>
@@ -35,7 +35,7 @@
                     <useip>1</useip>
                     <ip>127.0.0.1</ip>
                     <dns/>
-                    <bulk/>
+                    <bulk>1</bulk>
                     <port>10050</port>
                     <interface_ref/>
                 </interface>
@@ -45,7 +45,7 @@
     </hosts>
     <groups>
         <group>
-            <name>ESCloud Skynet</name>
+            <name>openstack</name>
         </group>
         <group>
             <name>Templates</name>
@@ -53,12 +53,12 @@
     </groups>
     <templates>
         <template>
-            <template>Skynet Template</template>
-            <name>Skynet Template</name>
+            <template>3. Template OpenStack</template>
+            <name>3. Template OpenStack</name>
             <description/>
             <groups>
                 <group>
-                    <name>ESCloud Skynet</name>
+                    <name>openstack</name>
                 </group>
                 <group>
                     <name>Templates</name>

@@ -12,8 +12,8 @@
     </groups>
     <templates>
         <template>
-            <template>OpenStack Computer Template</template>
-            <name>OpenStack Computer Template</name>
+            <template>1.Template OpenStack Compute</template>
+            <name>1.Template OpenStack Compute</name>
             <description/>
             <groups>
                 <group>
@@ -7507,7 +7507,7 @@
                     </item_prototypes>
                     <trigger_prototypes>
                         <trigger_prototype>
-                            <expression>{OpenStack Computer Template:vfs.fs.size[{#FSNAME},pfree].max(5m)}&lt;10</expression>
+                            <expression>{1.Template OpenStack Compute:vfs.fs.size[{#FSNAME},pfree].max(5m)}&lt;10</expression>
                             <name>Free disk space is less than 10% on volume {#FSNAME}</name>
                             <url/>
                             <status>0</status>
@@ -7517,7 +7517,7 @@
                             <dependencies/>
                         </trigger_prototype>
                         <trigger_prototype>
-                            <expression>{OpenStack Computer Template:vfs.fs.size[{#FSNAME},pfree].max(15m)}&lt;20</expression>
+                            <expression>{1.Template OpenStack Compute:vfs.fs.size[{#FSNAME},pfree].max(15m)}&lt;20</expression>
                             <name>Free disk space is less than 20% on volume {#FSNAME}</name>
                             <url/>
                             <status>0</status>
@@ -7527,7 +7527,7 @@
                             <dependencies/>
                         </trigger_prototype>
                         <trigger_prototype>
-                            <expression>{OpenStack Computer Template:vfs.fs.inode[{#FSNAME},pfree].max(5m)}&lt;10</expression>
+                            <expression>{1.Template OpenStack Compute:vfs.fs.inode[{#FSNAME},pfree].max(5m)}&lt;10</expression>
                             <name>Free inodes is less than 10% on volume {#FSNAME}</name>
                             <url/>
                             <status>0</status>
@@ -7537,7 +7537,7 @@
                             <dependencies/>
                         </trigger_prototype>
                         <trigger_prototype>
-                            <expression>{OpenStack Computer Template:vfs.fs.inode[{#FSNAME},pfree].max(15m)}&lt;20</expression>
+                            <expression>{1.Template OpenStack Compute:vfs.fs.inode[{#FSNAME},pfree].max(15m)}&lt;20</expression>
                             <name>Free inodes is less than 20% on volume {#FSNAME}</name>
                             <url/>
                             <status>0</status>
@@ -7574,7 +7574,7 @@
                                     <calc_fnc>2</calc_fnc>
                                     <type>2</type>
                                     <item>
-                                        <host>OpenStack Computer Template</host>
+                                        <host>1.Template OpenStack Compute</host>
                                         <key>vfs.fs.size[{#FSNAME},total]</key>
                                     </item>
                                 </graph_item>
@@ -7586,7 +7586,7 @@
                                     <calc_fnc>2</calc_fnc>
                                     <type>0</type>
                                     <item>
-                                        <host>OpenStack Computer Template</host>
+                                        <host>1.Template OpenStack Compute</host>
                                         <key>vfs.fs.size[{#FSNAME},free]</key>
                                     </item>
                                 </graph_item>
@@ -7625,7 +7625,7 @@
                             <sort_triggers>0</sort_triggers>
                             <resource>
                                 <name>CPU load</name>
-                                <host>OpenStack Computer Template</host>
+                                <host>1.Template OpenStack Compute</host>
                             </resource>
                             <max_columns>3</max_columns>
                             <application/>
@@ -7647,7 +7647,7 @@
                             <sort_triggers>0</sort_triggers>
                             <resource>
                                 <name>CPU utilization</name>
-                                <host>OpenStack Computer Template</host>
+                                <host>1.Template OpenStack Compute</host>
                             </resource>
                             <max_columns>3</max_columns>
                             <application/>
@@ -7669,7 +7669,7 @@
                             <sort_triggers>0</sort_triggers>
                             <resource>
                                 <name>Memory usage</name>
-                                <host>OpenStack Computer Template</host>
+                                <host>1.Template OpenStack Compute</host>
                             </resource>
                             <max_columns>3</max_columns>
                             <application/>
@@ -7691,7 +7691,7 @@
                             <sort_triggers>0</sort_triggers>
                             <resource>
                                 <name>Swap usage</name>
-                                <host>OpenStack Computer Template</host>
+                                <host>1.Template OpenStack Compute</host>
                             </resource>
                             <max_columns>3</max_columns>
                             <application/>
@@ -7713,7 +7713,7 @@
                             <sort_triggers>0</sort_triggers>
                             <resource>
                                 <key>proc.num[]</key>
-                                <host>OpenStack Computer Template</host>
+                                <host>1.Template OpenStack Compute</host>
                             </resource>
                             <max_columns>3</max_columns>
                             <application/>
@@ -7735,7 +7735,7 @@
                             <sort_triggers>0</sort_triggers>
                             <resource>
                                 <key>proc.num[,,run]</key>
-                                <host>OpenStack Computer Template</host>
+                                <host>1.Template OpenStack Compute</host>
                             </resource>
                             <max_columns>3</max_columns>
                             <application/>
@@ -7747,7 +7747,7 @@
     </templates>
     <triggers>
         <trigger>
-            <expression>{OpenStack Computer Template:vfs.file.cksum[/etc/passwd].diff(0)}&gt;0</expression>
+            <expression>{1.Template OpenStack Compute:vfs.file.cksum[/etc/passwd].diff(0)}&gt;0</expression>
             <name>/etc/passwd has been changed on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -7757,7 +7757,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Computer Template:proc.num[python2,ceilometer,,ceilometer-polling].last()}=0</expression>
+            <expression>{1.Template OpenStack Compute:proc.num[python2,ceilometer,,ceilometer-polling].last()}=0</expression>
             <name>Ceilometer Agent Compute service is down on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -7767,7 +7767,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Computer Template:kernel.maxfiles.last(0)}&lt;1024</expression>
+            <expression>{1.Template OpenStack Compute:kernel.maxfiles.last(0)}&lt;1024</expression>
             <name>Configured max number of opened files is too low on {HOST.NAME}</name>
             <url/>
             <status>1</status>
@@ -7777,7 +7777,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Computer Template:kernel.maxproc.last(0)}&lt;256</expression>
+            <expression>{1.Template OpenStack Compute:kernel.maxproc.last(0)}&lt;256</expression>
             <name>Configured max number of processes is too low on {HOST.NAME}</name>
             <url/>
             <status>1</status>
@@ -7787,7 +7787,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Computer Template:system.cpu.util[,iowait].avg(5m)}&gt;20</expression>
+            <expression>{1.Template OpenStack Compute:system.cpu.util[,iowait].avg(5m)}&gt;20</expression>
             <name>Disk I/O is overloaded on {HOST.NAME}</name>
             <url/>
             <status>1</status>
@@ -7797,7 +7797,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Computer Template:system.uname.diff(0)}&gt;0</expression>
+            <expression>{1.Template OpenStack Compute:system.uname.diff(0)}&gt;0</expression>
             <name>Host information was changed on {HOST.NAME}</name>
             <url/>
             <status>1</status>
@@ -7807,7 +7807,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Computer Template:system.hostname.diff(0)}&gt;0</expression>
+            <expression>{1.Template OpenStack Compute:system.hostname.diff(0)}&gt;0</expression>
             <name>Hostname was changed on {HOST.NAME}</name>
             <url/>
             <status>1</status>
@@ -7817,7 +7817,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Computer Template:vm.memory.size[available].last(0)}&lt;20M</expression>
+            <expression>{1.Template OpenStack Compute:vm.memory.size[available].last(0)}&lt;20M</expression>
             <name>Lack of available memory on server {HOST.NAME}</name>
             <url/>
             <status>1</status>
@@ -7827,7 +7827,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Computer Template:system.swap.size[,pfree].last(0)}&lt;50</expression>
+            <expression>{1.Template OpenStack Compute:system.swap.size[,pfree].last(0)}&lt;50</expression>
             <name>Lack of free swap space on {HOST.NAME}</name>
             <url/>
             <status>1</status>
@@ -7837,7 +7837,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Computer Template:libvirt.status.last(0)}=0</expression>
+            <expression>{1.Template OpenStack Compute:libvirt.status.last(0)}=0</expression>
             <name>Libvirtd Service Down on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -7847,7 +7847,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Computer Template:openstack.nova.compute.status.last(0)}=0</expression>
+            <expression>{1.Template OpenStack Compute:openstack.nova.compute.status.last(0)}=0</expression>
             <name>OpenStack Compute Service Down on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -7857,7 +7857,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Computer Template:openvswitch.status.last(0)}=0</expression>
+            <expression>{1.Template OpenStack Compute:openvswitch.status.last(0)}=0</expression>
             <name>Openvswitch Service Down on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -7867,7 +7867,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Computer Template:system.cpu.load[all,avg1].avg(5m)}&gt;5</expression>
+            <expression>{1.Template OpenStack Compute:system.cpu.load[all,avg1].avg(5m)}&gt;5</expression>
             <name>Processor load is too high on {HOST.NAME}</name>
             <url/>
             <status>1</status>
@@ -7877,7 +7877,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Computer Template:proc.num[].avg(5m)}&gt;1500</expression>
+            <expression>{1.Template OpenStack Compute:proc.num[].avg(5m)}&gt;1500</expression>
             <name>Too many processes on {HOST.NAME}</name>
             <url/>
             <status>1</status>
@@ -7887,7 +7887,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Computer Template:proc.num[,,run].avg(5m)}&gt;100</expression>
+            <expression>{1.Template OpenStack Compute:proc.num[,,run].avg(5m)}&gt;100</expression>
             <name>Too many processes running on {HOST.NAME}</name>
             <url/>
             <status>1</status>
@@ -7897,7 +7897,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Computer Template:system.cpu.util[,idle].max(15m)}&lt;30</expression>
+            <expression>{1.Template OpenStack Compute:system.cpu.util[,idle].max(15m)}&lt;30</expression>
             <name>[ComputeOS]CPU Usage Average on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -7907,7 +7907,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Computer Template:system.cpu.util[,idle].max(5m)}&lt;20</expression>
+            <expression>{1.Template OpenStack Compute:system.cpu.util[,idle].max(5m)}&lt;20</expression>
             <name>[ComputeOS]CPU Usage HIGH on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -7917,7 +7917,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Computer Template:system.cpu.util[,idle].max(30m)}&lt;50</expression>
+            <expression>{1.Template OpenStack Compute:system.cpu.util[,idle].max(30m)}&lt;50</expression>
             <name>[ComputeOS]CPU Usage WARNING on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -7927,7 +7927,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Computer Template:vm.memory.size[pavailable].max(15m)}&lt;30</expression>
+            <expression>{1.Template OpenStack Compute:vm.memory.size[pavailable].max(15m)}&lt;30</expression>
             <name>[ComputeOS]Memory Usage AVERAGE on server {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -7937,7 +7937,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Computer Template:vm.memory.size[pavailable].max(5m)}&lt;20</expression>
+            <expression>{1.Template OpenStack Compute:vm.memory.size[pavailable].max(5m)}&lt;20</expression>
             <name>[ComputeOS]Memory Usage HIGH on server {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -7947,7 +7947,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Computer Template:vm.memory.size[pavailable].max(30m)}&lt;50</expression>
+            <expression>{1.Template OpenStack Compute:vm.memory.size[pavailable].max(30m)}&lt;50</expression>
             <name>[ComputeOS]Memory Usage WARNING on server {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -7957,7 +7957,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Computer Template:system.swap.size[,pfree].max(15m)}&lt;30</expression>
+            <expression>{1.Template OpenStack Compute:system.swap.size[,pfree].max(15m)}&lt;30</expression>
             <name>[ComputeOS]SwapSpace Usage AVERAGE on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -7967,7 +7967,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Computer Template:system.swap.size[,pfree].max(5m)}&lt;20</expression>
+            <expression>{1.Template OpenStack Compute:system.swap.size[,pfree].max(5m)}&lt;20</expression>
             <name>[ComputeOS]SwapSpace Usage HIGH on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -7977,7 +7977,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Computer Template:system.swap.size[,pfree].max(30m)}&lt;50</expression>
+            <expression>{1.Template OpenStack Compute:system.swap.size[,pfree].max(30m)}&lt;50</expression>
             <name>[ComputeOS]SwapSpace Usage WARNING on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -7987,7 +7987,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Computer Template:icmpping.max(#3)}=0</expression>
+            <expression>{1.Template OpenStack Compute:icmpping.max(#3)}=0</expression>
             <name>[ComputeOS]{HOST.NAME} is OFFLINE by icmp</name>
             <url/>
             <status>0</status>
@@ -7997,7 +7997,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Computer Template:system.uptime.change(0)}&lt;0</expression>
+            <expression>{1.Template OpenStack Compute:system.uptime.change(0)}&lt;0</expression>
             <name>{HOST.NAME} has just been restarted</name>
             <url/>
             <status>0</status>
@@ -8034,7 +8034,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>system.cpu.switches</key>
                     </item>
                 </graph_item>
@@ -8046,7 +8046,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>system.cpu.intr</key>
                     </item>
                 </graph_item>
@@ -8078,7 +8078,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>system.cpu.load[all,avg1]</key>
                     </item>
                 </graph_item>
@@ -8090,7 +8090,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>system.cpu.load[all,avg5]</key>
                     </item>
                 </graph_item>
@@ -8102,7 +8102,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>system.cpu.load[all,avg15]</key>
                     </item>
                 </graph_item>
@@ -8134,7 +8134,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>system.cpu.util[,steal]</key>
                     </item>
                 </graph_item>
@@ -8146,7 +8146,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>system.cpu.util[,softirq]</key>
                     </item>
                 </graph_item>
@@ -8158,7 +8158,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>system.cpu.util[,interrupt]</key>
                     </item>
                 </graph_item>
@@ -8170,7 +8170,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>system.cpu.util[,nice]</key>
                     </item>
                 </graph_item>
@@ -8182,7 +8182,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>system.cpu.util[,iowait]</key>
                     </item>
                 </graph_item>
@@ -8194,7 +8194,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>system.cpu.util[,system]</key>
                     </item>
                 </graph_item>
@@ -8206,7 +8206,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>system.cpu.util[,user]</key>
                     </item>
                 </graph_item>
@@ -8218,7 +8218,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>system.cpu.util[,idle]</key>
                     </item>
                 </graph_item>
@@ -8250,7 +8250,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.read[dm-0,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8262,7 +8262,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.write[dm-0,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8274,7 +8274,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.read[dm-1,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8286,7 +8286,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.write[dm-1,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8298,7 +8298,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.read[dm-2,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8310,7 +8310,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.write[dm-2,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8322,7 +8322,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.read[sda1,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8334,7 +8334,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.write[sda1,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8346,7 +8346,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.read[sda2,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8358,7 +8358,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.write[sda2,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8370,7 +8370,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.read[sda3,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8382,7 +8382,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.write[sda3,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8394,7 +8394,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.read[sda4,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8406,7 +8406,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.write[sda4,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8418,7 +8418,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.read[sda,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8430,7 +8430,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.write[sda,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8442,7 +8442,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.read[sdb1,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8454,7 +8454,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.write[sdb1,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8466,7 +8466,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.read[sdb2,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8478,7 +8478,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.write[sdb2,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8490,7 +8490,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.read[sdb3,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8502,7 +8502,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.write[sdb3,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8514,7 +8514,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.read[sdb4,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8526,7 +8526,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.write[sdb4,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8538,7 +8538,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.read[sdb,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8550,7 +8550,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.write[sdb,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8562,7 +8562,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.read[sdc1,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8574,7 +8574,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.write[sdc1,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8586,7 +8586,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.read[sdc2,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8598,7 +8598,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.write[sdc2,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8610,7 +8610,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.read[sdc3,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8622,7 +8622,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.write[sdc3,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8634,7 +8634,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.read[sdc4,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8646,7 +8646,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.write[sdc4,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8658,7 +8658,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.read[sdc,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8670,7 +8670,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.write[sdc,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8682,7 +8682,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.read[sdd1,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8694,7 +8694,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.write[sdd1,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8706,7 +8706,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.read[sdd2,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8718,7 +8718,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.write[sdd2,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8730,7 +8730,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.read[sdd3,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8742,7 +8742,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.write[sdd3,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8754,7 +8754,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.read[sdd4,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8766,7 +8766,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.write[sdd4,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8778,7 +8778,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.read[sdd,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8790,7 +8790,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.write[sdd,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8802,7 +8802,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.read[all,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8814,7 +8814,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vfs.dev.write[all,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -8837,7 +8837,7 @@
             <ymax_type_1>2</ymax_type_1>
             <ymin_item_1>0</ymin_item_1>
             <ymax_item_1>
-                <host>OpenStack Computer Template</host>
+                <host>1.Template OpenStack Compute</host>
                 <key>vm.memory.size[total]</key>
             </ymax_item_1>
             <graph_items>
@@ -8849,7 +8849,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>vm.memory.size[available]</key>
                     </item>
                 </graph_item>
@@ -8872,7 +8872,7 @@
             <ymax_type_1>2</ymax_type_1>
             <ymin_item_1>0</ymin_item_1>
             <ymax_item_1>
-                <host>OpenStack Computer Template</host>
+                <host>1.Template OpenStack Compute</host>
                 <key>system.swap.size[,total]</key>
             </ymax_item_1>
             <graph_items>
@@ -8884,7 +8884,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>2</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>system.swap.size[,total]</key>
                     </item>
                 </graph_item>
@@ -8896,7 +8896,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Computer Template</host>
+                        <host>1.Template OpenStack Compute</host>
                         <key>system.swap.size[,free]</key>
                     </item>
                 </graph_item>

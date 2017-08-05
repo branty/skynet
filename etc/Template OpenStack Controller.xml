@@ -12,8 +12,8 @@
     </groups>
     <templates>
         <template>
-            <template>OpenStack Controller Template</template>
-            <name>OpenStack Controller Template</name>
+            <template>2.Template OpenStack Controller</template>
+            <name>2.Template OpenStack Controller</name>
             <description/>
             <groups>
                 <group>
@@ -7864,7 +7864,7 @@
                     </item_prototypes>
                     <trigger_prototypes>
                         <trigger_prototype>
-                            <expression>{OpenStack Controller Template:vfs.fs.size[{#FSNAME},pfree].max(5m)}&lt;10</expression>
+                            <expression>{2.Template OpenStack Controller:vfs.fs.size[{#FSNAME},pfree].max(5m)}&lt;10</expression>
                             <name>Free disk space is less than 10% on volume {#FSNAME}</name>
                             <url/>
                             <status>0</status>
@@ -7874,7 +7874,7 @@
                             <dependencies/>
                         </trigger_prototype>
                         <trigger_prototype>
-                            <expression>{OpenStack Controller Template:vfs.fs.size[{#FSNAME},pfree].max(15m)}&lt;20</expression>
+                            <expression>{2.Template OpenStack Controller:vfs.fs.size[{#FSNAME},pfree].max(15m)}&lt;20</expression>
                             <name>Free disk space is less than 20% on volume {#FSNAME}</name>
                             <url/>
                             <status>0</status>
@@ -7884,7 +7884,7 @@
                             <dependencies/>
                         </trigger_prototype>
                         <trigger_prototype>
-                            <expression>{OpenStack Controller Template:vfs.fs.inode[{#FSNAME},pfree].max(5m)}&lt;10</expression>
+                            <expression>{2.Template OpenStack Controller:vfs.fs.inode[{#FSNAME},pfree].max(5m)}&lt;10</expression>
                             <name>Free inodes is less than 10% on volume {#FSNAME}</name>
                             <url/>
                             <status>0</status>
@@ -7894,7 +7894,7 @@
                             <dependencies/>
                         </trigger_prototype>
                         <trigger_prototype>
-                            <expression>{OpenStack Controller Template:vfs.fs.inode[{#FSNAME},pfree].max(15m)}&lt;20</expression>
+                            <expression>{2.Template OpenStack Controller:vfs.fs.inode[{#FSNAME},pfree].max(15m)}&lt;20</expression>
                             <name>Free inodes is less than 20% on volume {#FSNAME}</name>
                             <url/>
                             <status>0</status>
@@ -7931,7 +7931,7 @@
                                     <calc_fnc>2</calc_fnc>
                                     <type>2</type>
                                     <item>
-                                        <host>OpenStack Controller Template</host>
+                                        <host>2.Template OpenStack Controller</host>
                                         <key>vfs.fs.size[{#FSNAME},total]</key>
                                     </item>
                                 </graph_item>
@@ -7943,7 +7943,7 @@
                                     <calc_fnc>2</calc_fnc>
                                     <type>0</type>
                                     <item>
-                                        <host>OpenStack Controller Template</host>
+                                        <host>2.Template OpenStack Controller</host>
                                         <key>vfs.fs.size[{#FSNAME},free]</key>
                                     </item>
                                 </graph_item>
@@ -7985,7 +7985,7 @@
                             <sort_triggers>0</sort_triggers>
                             <resource>
                                 <name>CPU load</name>
-                                <host>OpenStack Controller Template</host>
+                                <host>2.Template OpenStack Controller</host>
                             </resource>
                             <max_columns>3</max_columns>
                             <application/>
@@ -8007,7 +8007,7 @@
                             <sort_triggers>0</sort_triggers>
                             <resource>
                                 <name>CPU utilization</name>
-                                <host>OpenStack Controller Template</host>
+                                <host>2.Template OpenStack Controller</host>
                             </resource>
                             <max_columns>3</max_columns>
                             <application/>
@@ -8029,7 +8029,7 @@
                             <sort_triggers>0</sort_triggers>
                             <resource>
                                 <name>Memory usage</name>
-                                <host>OpenStack Controller Template</host>
+                                <host>2.Template OpenStack Controller</host>
                             </resource>
                             <max_columns>3</max_columns>
                             <application/>
@@ -8051,7 +8051,7 @@
                             <sort_triggers>0</sort_triggers>
                             <resource>
                                 <name>Swap usage</name>
-                                <host>OpenStack Controller Template</host>
+                                <host>2.Template OpenStack Controller</host>
                             </resource>
                             <max_columns>3</max_columns>
                             <application/>
@@ -8073,7 +8073,7 @@
                             <sort_triggers>0</sort_triggers>
                             <resource>
                                 <key>proc.num[]</key>
-                                <host>OpenStack Controller Template</host>
+                                <host>2.Template OpenStack Controller</host>
                             </resource>
                             <max_columns>3</max_columns>
                             <application/>
@@ -8095,7 +8095,7 @@
                             <sort_triggers>0</sort_triggers>
                             <resource>
                                 <key>proc.num[,,run]</key>
-                                <host>OpenStack Controller Template</host>
+                                <host>2.Template OpenStack Controller</host>
                             </resource>
                             <max_columns>3</max_columns>
                             <application/>
@@ -8107,7 +8107,7 @@
     </templates>
     <triggers>
         <trigger>
-            <expression>{OpenStack Controller Template:vfs.file.cksum[/etc/passwd].diff(0)}&gt;0</expression>
+            <expression>{2.Template OpenStack Controller:vfs.file.cksum[/etc/passwd].diff(0)}&gt;0</expression>
             <name>/etc/passwd has been changed on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8117,7 +8117,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:crm.node.check[p_openstack-ceilometer-central].last()}=0</expression>
+            <expression>{2.Template OpenStack Controller:crm.node.check[p_openstack-ceilometer-central].last()}=0</expression>
             <name>Ceilometer Alarm Agent Central service is down on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8127,7 +8127,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:crm.node.check[p_openstack-ceilometer-alarm-evaluator].last()}=0</expression>
+            <expression>{2.Template OpenStack Controller:crm.node.check[p_openstack-ceilometer-alarm-evaluator].last()}=0</expression>
             <name>Ceilometer Alarm Alarm Evaluator service is down on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8137,7 +8137,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:proc.num[python2,ceilometer,,ceilometer-alarm-notifier].last()}=0</expression>
+            <expression>{2.Template OpenStack Controller:proc.num[python2,ceilometer,,ceilometer-alarm-notifier].last()}=0</expression>
             <name>Ceilometer Alarm Notifier service is down on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8147,7 +8147,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:net.tcp.listen[8777].last()}=0</expression>
+            <expression>{2.Template OpenStack Controller:net.tcp.listen[8777].last()}=0</expression>
             <name>Ceilometer API Server service is down on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8157,7 +8157,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:proc.num[python2,ceilometer,,ceilometer-api].last()}=0</expression>
+            <expression>{2.Template OpenStack Controller:proc.num[python2,ceilometer,,ceilometer-api].last()}=0</expression>
             <name>Ceilometer API Server service is down on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8167,7 +8167,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:proc.num[python2,ceilometer,,ceilometer-collector].last()}=0</expression>
+            <expression>{2.Template OpenStack Controller:proc.num[python2,ceilometer,,ceilometer-collector].last()}=0</expression>
             <name>Ceilometer Collector service is down on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8177,7 +8177,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:ceph.health.status.last(0)}=0</expression>
+            <expression>{2.Template OpenStack Controller:ceph.health.status.last(0)}=0</expression>
             <name>Ceph Cluster Has Health Problem</name>
             <url/>
             <status>0</status>
@@ -8187,7 +8187,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:ceph.mon.status[node-1].last(0)}=0</expression>
+            <expression>{2.Template OpenStack Controller:ceph.mon.status[node-1].last(0)}=0</expression>
             <name>Ceph Mon Down on Node-1</name>
             <url/>
             <status>0</status>
@@ -8197,7 +8197,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:ceph.mon.status[node-2].last(0)}=0</expression>
+            <expression>{2.Template OpenStack Controller:ceph.mon.status[node-2].last(0)}=0</expression>
             <name>Ceph Mon Down on Node-2</name>
             <url/>
             <status>0</status>
@@ -8207,7 +8207,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:ceph.mon.status[node-3].last(0)}=0</expression>
+            <expression>{2.Template OpenStack Controller:ceph.mon.status[node-3].last(0)}=0</expression>
             <name>Ceph Mon Down on Node-3</name>
             <url/>
             <status>0</status>
@@ -8217,7 +8217,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:ceph.osd.status.last(0)}=0</expression>
+            <expression>{2.Template OpenStack Controller:ceph.osd.status.last(0)}=0</expression>
             <name>Ceph OSD Down</name>
             <url/>
             <status>0</status>
@@ -8227,7 +8227,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:ceph.blocked.osd.last(0)}&lt;&gt;0</expression>
+            <expression>{2.Template OpenStack Controller:ceph.blocked.osd.last(0)}&lt;&gt;0</expression>
             <name>Ceph OSD {ITEM.VALUE1} Blocked</name>
             <url/>
             <status>0</status>
@@ -8237,7 +8237,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:ceph.slow.status.last(0)}&gt;0</expression>
+            <expression>{2.Template OpenStack Controller:ceph.slow.status.last(0)}&gt;0</expression>
             <name>Ceph {ITEM.VALUE1} OSDs has Slow Requests</name>
             <url/>
             <status>0</status>
@@ -8247,7 +8247,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:kernel.maxfiles.last(0)}&lt;1024</expression>
+            <expression>{2.Template OpenStack Controller:kernel.maxfiles.last(0)}&lt;1024</expression>
             <name>Configured max number of opened files is too low on {HOST.NAME}</name>
             <url/>
             <status>1</status>
@@ -8257,7 +8257,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:kernel.maxproc.last(0)}&lt;256</expression>
+            <expression>{2.Template OpenStack Controller:kernel.maxproc.last(0)}&lt;256</expression>
             <name>Configured max number of processes is too low on {HOST.NAME}</name>
             <url/>
             <status>1</status>
@@ -8267,7 +8267,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:system.cpu.util[,iowait].avg(5m)}&gt;20</expression>
+            <expression>{2.Template OpenStack Controller:system.cpu.util[,iowait].avg(5m)}&gt;20</expression>
             <name>Disk I/O is overloaded on {HOST.NAME}</name>
             <url/>
             <status>1</status>
@@ -8277,7 +8277,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:system.uname.diff(0)}&gt;0</expression>
+            <expression>{2.Template OpenStack Controller:system.uname.diff(0)}&gt;0</expression>
             <name>Host information was changed on {HOST.NAME}</name>
             <url/>
             <status>1</status>
@@ -8287,7 +8287,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:system.hostname.diff(0)}&gt;0</expression>
+            <expression>{2.Template OpenStack Controller:system.hostname.diff(0)}&gt;0</expression>
             <name>Hostname was changed on {HOST.NAME}</name>
             <url/>
             <status>1</status>
@@ -8297,7 +8297,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:vm.memory.size[available].last(0)}&lt;20M</expression>
+            <expression>{2.Template OpenStack Controller:vm.memory.size[available].last(0)}&lt;20M</expression>
             <name>Lack of available memory on server {HOST.NAME}</name>
             <url/>
             <status>1</status>
@@ -8307,7 +8307,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:crm.node.check[p_neutron-lbaas-agent].last()}=0</expression>
+            <expression>{2.Template OpenStack Controller:crm.node.check[p_neutron-lbaas-agent].last()}=0</expression>
             <name>lbaas-agent service is down on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8317,7 +8317,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:proc.num[,neutron,,bin/python2.*bin/neutron-dhcp-agent].last()}=0</expression>
+            <expression>{2.Template OpenStack Controller:proc.num[,neutron,,bin/python2.*bin/neutron-dhcp-agent].last()}=0</expression>
             <name>Neutron DHCP Agent process is not running on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8327,7 +8327,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:proc.num[,neutron,,bin/python2.*bin/neutron-l3-agent].last()}=0</expression>
+            <expression>{2.Template OpenStack Controller:proc.num[,neutron,,bin/python2.*bin/neutron-l3-agent].last()}=0</expression>
             <name>Neutron L3 Agent process is not running on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8337,7 +8337,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:proc.num[,neutron,,bin/python2.*bin/neutron-metadata-agent].last()}=0</expression>
+            <expression>{2.Template OpenStack Controller:proc.num[,neutron,,bin/python2.*bin/neutron-metadata-agent].last()}=0</expression>
             <name>Neutron Metadata Agent process is not running on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8347,7 +8347,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:openstack.ceilometerapi.status.last(0)}=0</expression>
+            <expression>{2.Template OpenStack Controller:openstack.ceilometerapi.status.last(0)}=0</expression>
             <name>OpenStack Ceilometer API Service Down on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8357,7 +8357,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:openstack.cinderapi.status.last(0)}=0</expression>
+            <expression>{2.Template OpenStack Controller:openstack.cinderapi.status.last(0)}=0</expression>
             <name>OpenStack Cinder API Service Down on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8367,7 +8367,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:openstack.cinderscheduler.status.last(0)}=0</expression>
+            <expression>{2.Template OpenStack Controller:openstack.cinderscheduler.status.last(0)}=0</expression>
             <name>OpenStack Cinder Scheduler Service Down on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8377,7 +8377,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:openstack.cindervolume.status.last(0)}=0</expression>
+            <expression>{2.Template OpenStack Controller:openstack.cindervolume.status.last(0)}=0</expression>
             <name>OpenStack Cinder Volume Service Down on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8387,7 +8387,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:openstack.glanceapi.status.last(0)}=0</expression>
+            <expression>{2.Template OpenStack Controller:openstack.glanceapi.status.last(0)}=0</expression>
             <name>OpenStack Glance API Service Down on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8397,7 +8397,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:openstack.glanceregistry.status.last(0)}=0</expression>
+            <expression>{2.Template OpenStack Controller:openstack.glanceregistry.status.last(0)}=0</expression>
             <name>OpenStack Glance Registry Service Down on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8407,7 +8407,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:openstack.keystone.status.last(0)}=0</expression>
+            <expression>{2.Template OpenStack Controller:openstack.keystone.status.last(0)}=0</expression>
             <name>OpenStack KeyStone Service Down on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8417,7 +8417,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:mysql.cluster.status.last(0)}=0</expression>
+            <expression>{2.Template OpenStack Controller:mysql.cluster.status.last(0)}=0</expression>
             <name>OpenStack MySQL Cluster Node Down</name>
             <url/>
             <status>0</status>
@@ -8427,7 +8427,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:proc.num[,neutron,,bin/python2.*bin/neutron-openvswitch-agent].last(0)}=0</expression>
+            <expression>{2.Template OpenStack Controller:proc.num[,neutron,,bin/python2.*bin/neutron-openvswitch-agent].last(0)}=0</expression>
             <name>OpenStack Neutron OVS Agent Service Down on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8437,7 +8437,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:openstack.neutron.status.last(0)}=0</expression>
+            <expression>{2.Template OpenStack Controller:openstack.neutron.status.last(0)}=0</expression>
             <name>OpenStack Neutron Service Down on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8447,7 +8447,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:openstack.novaapi.status.last(0)}=0</expression>
+            <expression>{2.Template OpenStack Controller:openstack.novaapi.status.last(0)}=0</expression>
             <name>OpenStack Nova API Service Down on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8457,7 +8457,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:openstack.novacert.status.last(0)}=0</expression>
+            <expression>{2.Template OpenStack Controller:openstack.novacert.status.last(0)}=0</expression>
             <name>OpenStack Nova Cert Service Down on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8467,7 +8467,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:openstack.novaconductor.status.last(0)}=0</expression>
+            <expression>{2.Template OpenStack Controller:openstack.novaconductor.status.last(0)}=0</expression>
             <name>OpenStack Nova Conductor Service Down on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8477,7 +8477,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:openstack.novaconsoleauth.status.last(0)}=0</expression>
+            <expression>{2.Template OpenStack Controller:openstack.novaconsoleauth.status.last(0)}=0</expression>
             <name>OpenStack Nova Consoleauth Service Down on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8487,7 +8487,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:openstack.novascheduler.status.last(0)}=0</expression>
+            <expression>{2.Template OpenStack Controller:openstack.novascheduler.status.last(0)}=0</expression>
             <name>OpenStack Nova Scheduler Service Down on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8497,7 +8497,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:pacemaker.status.last(0)}=0</expression>
+            <expression>{2.Template OpenStack Controller:pacemaker.status.last(0)}=0</expression>
             <name>OpenStack Pacemaker Cluster Node Down</name>
             <url/>
             <status>0</status>
@@ -8507,7 +8507,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:rabbitmq.status.last(0)}=0</expression>
+            <expression>{2.Template OpenStack Controller:rabbitmq.status.last(0)}=0</expression>
             <name>OpenStack RabbitMQ Cluster Service Down on {HOST.NAME}</name>
             <url/>
             <status>1</status>
@@ -8517,7 +8517,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:corosync_check.last()}=0</expression>
+            <expression>{2.Template OpenStack Controller:corosync_check.last()}=0</expression>
             <name>pacemaker corosync process is not running on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8527,7 +8527,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:system.cpu.load[all,avg1].avg(5m)}&gt;5</expression>
+            <expression>{2.Template OpenStack Controller:system.cpu.load[all,avg1].avg(5m)}&gt;5</expression>
             <name>Processor load is too high on {HOST.NAME}</name>
             <url/>
             <status>1</status>
@@ -8537,7 +8537,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:proc.num[,rabbitmq,,bin/beam].last()}=0</expression>
+            <expression>{2.Template OpenStack Controller:proc.num[,rabbitmq,,bin/beam].last()}=0</expression>
             <name>RabbitMQ BEAM process is not running on {HOST.NAME}</name>
             <url/>
             <status>1</status>
@@ -8547,7 +8547,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:proc.num[,,,epmd].last()}=0</expression>
+            <expression>{2.Template OpenStack Controller:proc.num[,,,epmd].last()}=0</expression>
             <name>RabbitMQ EPMD process is not running on {HOST.NAME}</name>
             <url/>
             <status>1</status>
@@ -8557,7 +8557,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:net.tcp.port[,4369].last()}=0</expression>
+            <expression>{2.Template OpenStack Controller:net.tcp.port[,4369].last()}=0</expression>
             <name>RabbitMQ EPMD service is down on {HOST.NAME}</name>
             <url/>
             <status>1</status>
@@ -8567,7 +8567,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:net.tcp.listen[5672].last()}=0</expression>
+            <expression>{2.Template OpenStack Controller:net.tcp.listen[5672].last()}=0</expression>
             <name>RabbitMQ Server service is down on {HOST.NAME}</name>
             <url/>
             <status>1</status>
@@ -8577,7 +8577,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:net.tcp.port[,41055].last()}=0</expression>
+            <expression>{2.Template OpenStack Controller:net.tcp.port[,41055].last()}=0</expression>
             <name>RabbitMQ Server service is down on {HOST.NAME}</name>
             <url/>
             <status>1</status>
@@ -8587,7 +8587,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:proc.num[].avg(5m)}&gt;1500</expression>
+            <expression>{2.Template OpenStack Controller:proc.num[].avg(5m)}&gt;1500</expression>
             <name>Too many processes on {HOST.NAME}</name>
             <url/>
             <status>1</status>
@@ -8597,7 +8597,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:proc.num[].avg(5m)}&gt;2</expression>
+            <expression>{2.Template OpenStack Controller:proc.num[].avg(5m)}&gt;2</expression>
             <name>Too many processes on {HOST.NAME} testing</name>
             <url/>
             <status>1</status>
@@ -8607,7 +8607,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:proc.num[,,run].avg(5m)}&gt;100</expression>
+            <expression>{2.Template OpenStack Controller:proc.num[,,run].avg(5m)}&gt;100</expression>
             <name>Too many processes running on {HOST.NAME}</name>
             <url/>
             <status>1</status>
@@ -8617,7 +8617,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:proc.num[,,run].avg(5m)}&gt;100</expression>
+            <expression>{2.Template OpenStack Controller:proc.num[,,run].avg(5m)}&gt;100</expression>
             <name>Too many processes running on {HOST.NAME} testing</name>
             <url/>
             <status>0</status>
@@ -8627,7 +8627,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:system.cpu.util[,idle].max(15m)}&lt;30</expression>
+            <expression>{2.Template OpenStack Controller:system.cpu.util[,idle].max(15m)}&lt;30</expression>
             <name>[ControllerOS]CPU Usage Average on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8637,7 +8637,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:system.cpu.util[,idle].max(5m)}&lt;20</expression>
+            <expression>{2.Template OpenStack Controller:system.cpu.util[,idle].max(5m)}&lt;20</expression>
             <name>[ControllerOS]CPU Usage High on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8647,7 +8647,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:system.cpu.util[,idle].max(30m)}&lt;50</expression>
+            <expression>{2.Template OpenStack Controller:system.cpu.util[,idle].max(30m)}&lt;50</expression>
             <name>[ControllerOS]CPU Usage Warning on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8657,7 +8657,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:vm.memory.size[pavailable].max(15m)}&lt;30</expression>
+            <expression>{2.Template OpenStack Controller:vm.memory.size[pavailable].max(15m)}&lt;30</expression>
             <name>[ControllerOS]Memory Usage AVERAGE on server {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8667,7 +8667,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:vm.memory.size[pavailable].max(5m)}&lt;20</expression>
+            <expression>{2.Template OpenStack Controller:vm.memory.size[pavailable].max(5m)}&lt;20</expression>
             <name>[ControllerOS]Memory Usage HIGH on server {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8677,7 +8677,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:vm.memory.size[pavailable].max(30m)}&lt;50</expression>
+            <expression>{2.Template OpenStack Controller:vm.memory.size[pavailable].max(30m)}&lt;50</expression>
             <name>[ControllerOS]Memory Usage WARNING on server {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8687,7 +8687,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:system.swap.size[,pfree].max(15m)}&lt;30</expression>
+            <expression>{2.Template OpenStack Controller:system.swap.size[,pfree].max(15m)}&lt;30</expression>
             <name>[ControllerOS]SwapSpace Usage AVERAGE on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8697,7 +8697,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:system.swap.size[,pfree].max(5m)}&lt;20</expression>
+            <expression>{2.Template OpenStack Controller:system.swap.size[,pfree].max(5m)}&lt;20</expression>
             <name>[ControllerOS]SwapSpace Usage HIGH on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8707,7 +8707,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:system.swap.size[,pfree].max(30m)}&lt;50</expression>
+            <expression>{2.Template OpenStack Controller:system.swap.size[,pfree].max(30m)}&lt;50</expression>
             <name>[ControllerOS]SwapSpace Usage WARNING on {HOST.NAME}</name>
             <url/>
             <status>0</status>
@@ -8717,7 +8717,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:icmpping.max(#3)}=0</expression>
+            <expression>{2.Template OpenStack Controller:icmpping.max(#3)}=0</expression>
             <name>[ControllerOS]{HOST.NAME} is OFFLINE by icmp</name>
             <url/>
             <status>0</status>
@@ -8727,7 +8727,7 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{OpenStack Controller Template:system.uptime.change(0)}&lt;0</expression>
+            <expression>{2.Template OpenStack Controller:system.uptime.change(0)}&lt;0</expression>
             <name>{HOST.NAME} has just been restarted</name>
             <url/>
             <status>0</status>
@@ -8764,7 +8764,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>ceph.cluster.usage</key>
                     </item>
                 </graph_item>
@@ -8796,7 +8796,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>ceph.pg.stat[iops]</key>
                     </item>
                 </graph_item>
@@ -8828,7 +8828,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>ceph.pg.stat[read]</key>
                     </item>
                 </graph_item>
@@ -8840,7 +8840,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>ceph.pg.stat[write]</key>
                     </item>
                 </graph_item>
@@ -8872,7 +8872,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>system.cpu.switches</key>
                     </item>
                 </graph_item>
@@ -8884,7 +8884,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>system.cpu.intr</key>
                     </item>
                 </graph_item>
@@ -8916,7 +8916,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>system.cpu.load[all,avg1]</key>
                     </item>
                 </graph_item>
@@ -8928,7 +8928,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>system.cpu.load[all,avg5]</key>
                     </item>
                 </graph_item>
@@ -8940,7 +8940,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>system.cpu.load[all,avg15]</key>
                     </item>
                 </graph_item>
@@ -8972,7 +8972,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>system.cpu.util[,steal]</key>
                     </item>
                 </graph_item>
@@ -8984,7 +8984,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>system.cpu.util[,softirq]</key>
                     </item>
                 </graph_item>
@@ -8996,7 +8996,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>system.cpu.util[,interrupt]</key>
                     </item>
                 </graph_item>
@@ -9008,7 +9008,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>system.cpu.util[,nice]</key>
                     </item>
                 </graph_item>
@@ -9020,7 +9020,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>system.cpu.util[,iowait]</key>
                     </item>
                 </graph_item>
@@ -9032,7 +9032,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>system.cpu.util[,system]</key>
                     </item>
                 </graph_item>
@@ -9044,7 +9044,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>system.cpu.util[,user]</key>
                     </item>
                 </graph_item>
@@ -9056,7 +9056,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>system.cpu.util[,idle]</key>
                     </item>
                 </graph_item>
@@ -9088,7 +9088,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.read[sda1,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9100,7 +9100,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.write[sda1,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9112,7 +9112,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.read[sda2,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9124,7 +9124,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.write[sda2,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9136,7 +9136,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.read[sda3,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9148,7 +9148,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.write[sda3,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9160,7 +9160,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.read[sda4,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9172,7 +9172,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.write[sda4,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9184,7 +9184,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.read[sda,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9196,7 +9196,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.write[sda,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9208,7 +9208,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.read[sdb1,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9220,7 +9220,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.write[sdb1,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9232,7 +9232,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.read[sdb2,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9244,7 +9244,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.write[sdb2,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9256,7 +9256,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.read[sdb3,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9268,7 +9268,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.write[sdb3,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9280,7 +9280,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.read[sdb4,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9292,7 +9292,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.write[sdb4,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9304,7 +9304,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.read[sdb,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9316,7 +9316,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.write[sdb,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9328,7 +9328,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.read[sdc1,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9340,7 +9340,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.write[sdc1,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9352,7 +9352,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.read[sdc2,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9364,7 +9364,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.write[sdc2,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9376,7 +9376,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.read[sdc3,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9388,7 +9388,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.write[sdc3,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9400,7 +9400,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.read[sdc4,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9412,7 +9412,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.write[sdc4,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9424,7 +9424,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.read[sdc,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9436,7 +9436,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.write[sdc,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9448,7 +9448,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.read[sdd1,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9460,7 +9460,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.write[sdd1,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9472,7 +9472,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.read[sdd2,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9484,7 +9484,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.write[sdd2,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9496,7 +9496,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.read[sdd3,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9508,7 +9508,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.write[sdd3,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9520,7 +9520,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.read[sdd4,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9532,7 +9532,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.write[sdd4,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9544,7 +9544,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.read[sdd,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9556,7 +9556,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.write[sdd,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9568,7 +9568,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.read[dm-0,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9580,7 +9580,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.write[dm-0,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9592,7 +9592,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.read[dm-1,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9604,7 +9604,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.write[dm-1,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9616,7 +9616,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.read[dm-2,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9628,7 +9628,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vfs.dev.write[dm-2,sps,avg1]</key>
                     </item>
                 </graph_item>
@@ -9651,7 +9651,7 @@
             <ymax_type_1>2</ymax_type_1>
             <ymin_item_1>0</ymin_item_1>
             <ymax_item_1>
-                <host>OpenStack Controller Template</host>
+                <host>2.Template OpenStack Controller</host>
                 <key>vm.memory.size[total]</key>
             </ymax_item_1>
             <graph_items>
@@ -9663,7 +9663,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>vm.memory.size[available]</key>
                     </item>
                 </graph_item>
@@ -9695,7 +9695,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>2</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>system.swap.size[,total]</key>
                     </item>
                 </graph_item>
@@ -9707,7 +9707,7 @@
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>OpenStack Controller Template</host>
+                        <host>2.Template OpenStack Controller</host>
                         <key>system.swap.size[,free]</key>
                     </item>
                 </graph_item>
