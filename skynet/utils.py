@@ -6,6 +6,7 @@ import time
 import six
 
 from skynet import exceptions
+from skynet.exceptions import ZabbixAuthError
 
 
 LOG = logging.getLogger(__name__)
@@ -141,6 +142,9 @@ class ZabbixRetry(Retry):
                 zbx_handler = func(
                     conf,
                     kwargs.get('mongo_conn'))
+            except ZabbixAuthError as err:
+                LOG.error("Incorrect user or password, please check it again")
+                raise
             except Exception as err:
                 if self.stop_max_attemp_number > 0 and attempt_times\
                   > self.stop_max_attemp_number:
@@ -153,14 +157,17 @@ class ZabbixRetry(Retry):
                                  'port': conf.get_option('zabbix',
                                                          'zabbix_web_port')})
                     raise
-                LOG.warn('Unable to connect to the zabbix server(%(host)s,'
-                         'port: %(port)s): %(errmsg)s. Trying again in '
-                         '%(retry_interval)d seconds.'
-                         % {'host': conf.get_option('zabbix', 'zabbix_host'),
-                            'port': conf.get_option('zabbix',
-                                                    'zabbix_web_port'),
-                            'errmsg': err,
-                            'retry_interval': self.stop_max_delay})
+                LOG.warning('Unable to connect to the zabbix server(%(host)s,'
+                            'port: %(port)s): %(errmsg)s. Trying again in '
+                            '%(retry_interval)d seconds.'
+                            % {'host': conf.get_option(
+                                        'zabbix',
+                                        'zabbix_host'),
+                               'port': conf.get_option(
+                                        'zabbix',
+                                        'zabbix_web_port'),
+                               'errmsg': err,
+                               'retry_interval': self.stop_max_delay})
                 attempt_times += 1
                 time.sleep(self.stop_max_delay)
             else:

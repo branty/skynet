@@ -349,8 +349,8 @@ class ZabbixController(ZabbixBase):
                 sorted_memory_usage = sorted(total_pavais,
                                              key=lambda i: i[1])[:top]
             else:
-                LOG.warn("Total num of openstack physical host %d is less then"
-                         "top(%d)" % (len(total_pavais), top))
+                LOG.warning("Total num of openstack physical host %d is less "
+                            "then top(%d)" % (len(total_pavais), top))
                 sorted_memory_usage = sorted(total_pavais,
                                              key=lambda i: i[1])
             hostid_value_map = {}
@@ -384,8 +384,8 @@ class ZabbixController(ZabbixBase):
                 sorted_memory_usage = sorted(total_cpus,
                                              key=lambda i: i[1])[:top]
             else:
-                LOG.warn("Total num of openstack physical host %d is less then"
-                         "top(%d)" % (len(total_cpus), top))
+                LOG.warning("Total num of openstack physical host %d is less "
+                            "then top(%d)" % (len(total_cpus), top))
                 sorted_memory_usage = sorted(total_cpus,
                                              key=lambda i: i[1])
             hostid_value_map = {}
@@ -574,17 +574,18 @@ class ZabbixController(ZabbixBase):
                         result.append(rs)
                     except Exception:
                         # Maybe this intance is deleted
-                        LOG.warn("Intance with id %s may be deleted" % rsc[0])
+                        LOG.warning("Intance with id %s may be deleted"
+                                    % rsc[0])
             else:
-                LOG.warn("Total num of openstack nova vms %d is less than"
-                         "top(%d)" % (len(top_vms), top))
+                LOG.warning("Total num of openstack nova vms %d is less than "
+                            "top(%d)" % (len(top_vms), top))
                 result.extend(
                     [{VMS_CACHED[rsc[0]]:rsc[1]} for rsc in top_vms]
                 )
             cache_result.clear()
             if len(result) < top:
-                LOG.warn("Total num of openstack nova vms %d is less than"
-                         "top(%d)" % (len(result), top))
+                LOG.warning("Total num of openstack nova vms %d is less than "
+                            "top(%d)" % (len(result), top))
             return result
         except Exception as e:
             LOG.error("Failed to get openstack vm top%d %s metric,"
