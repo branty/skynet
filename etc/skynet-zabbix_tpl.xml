@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>3.0</version>
-    <date>2017-08-03T03:06:12Z</date>
+    <date>2017-08-09T03:47:59Z</date>
     <hosts>
         <host>
             <groups>
@@ -78,7 +78,7 @@
                     <snmp_oid/>
                     <key>openstack.alarms.total</key>
                     <delay>0</delay>
-                    <history>7</history>
+                    <history>3</history>
                     <trends>0</trends>
                     <status>0</status>
                     <value_type>4</value_type>
@@ -121,7 +121,7 @@
                     <snmp_oid/>
                     <key>openstack.hosts.cpu.util</key>
                     <delay>0</delay>
-                    <history>7</history>
+                    <history>3</history>
                     <trends>0</trends>
                     <status>0</status>
                     <value_type>4</value_type>
@@ -164,7 +164,7 @@
                     <snmp_oid/>
                     <key>openstack.hosts.memory.usage</key>
                     <delay>0</delay>
-                    <history>7</history>
+                    <history>3</history>
                     <trends>0</trends>
                     <status>0</status>
                     <value_type>4</value_type>
@@ -207,7 +207,7 @@
                     <snmp_oid/>
                     <key>openstack.hosts.top5.cpu</key>
                     <delay>0</delay>
-                    <history>7</history>
+                    <history>3</history>
                     <trends>0</trends>
                     <status>0</status>
                     <value_type>4</value_type>
@@ -250,7 +250,7 @@
                     <snmp_oid/>
                     <key>openstack.hosts.top5.memory</key>
                     <delay>0</delay>
-                    <history>7</history>
+                    <history>3</history>
                     <trends>0</trends>
                     <status>0</status>
                     <value_type>4</value_type>
@@ -293,7 +293,7 @@
                     <snmp_oid/>
                     <key>openstack.hosts.total</key>
                     <delay>0</delay>
-                    <history>7</history>
+                    <history>3</history>
                     <trends>0</trends>
                     <status>0</status>
                     <value_type>4</value_type>
@@ -336,7 +336,7 @@
                     <snmp_oid/>
                     <key>openstack.vms.memory.usage</key>
                     <delay>0</delay>
-                    <history>7</history>
+                    <history>3</history>
                     <trends>0</trends>
                     <status>0</status>
                     <value_type>4</value_type>
@@ -379,7 +379,7 @@
                     <snmp_oid/>
                     <key>openstack.vms.top5.cpu</key>
                     <delay>0</delay>
-                    <history>7</history>
+                    <history>3</history>
                     <trends>0</trends>
                     <status>0</status>
                     <value_type>4</value_type>
@@ -422,7 +422,7 @@
                     <snmp_oid/>
                     <key>openstack.vms.top5.memory</key>
                     <delay>0</delay>
-                    <history>7</history>
+                    <history>3</history>
                     <trends>0</trends>
                     <status>0</status>
                     <value_type>4</value_type>
@@ -465,7 +465,7 @@
                     <snmp_oid/>
                     <key>openstack.vms.total</key>
                     <delay>0</delay>
-                    <history>7</history>
+                    <history>3</history>
                     <trends>0</trends>
                     <status>0</status>
                     <value_type>4</value_type>
@@ -508,7 +508,7 @@
                     <snmp_oid/>
                     <key>openstack.vms.vpus.usage</key>
                     <delay>0</delay>
-                    <history>7</history>
+                    <history>3</history>
                     <trends>0</trends>
                     <status>0</status>
                     <value_type>4</value_type>
