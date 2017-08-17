@@ -48,6 +48,8 @@ class ZabbixBase(object):
         self.zabbix_host = conf.get_option("zabbix", "zabbix_host")
         self.zabbix_port = conf.get_option("zabbix", "zabbix_port",
                                            default=10051)
+        self.socket_timeout = conf.get_option("zabbix", "socket_timeout",
+                                              default=3)
         self.conf = conf
 
     def set_proxy_head(self, data):
@@ -62,25 +64,37 @@ class ZabbixBase(object):
     def connect_zabbix(self, payload):
         """Send zabbix histoty data
         """
-        ss = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        ss.connect((self.zabbix_host, int(self.zabbix_port)))
-        # read socket response, the five bytes are the head msg
-        ss.send(payload)
-        response_head = ss.recv(5, socket.MSG_WAITALL)
-        if response_head != "ZBXD\1":
-            LOG.error("Faild to send zabbix socket date,got invalid response.")
-            return
+        response = None
+        ss = None
+        try:
+            ss = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            ss.settimeout(int(self.socket_timeout))
+            ss.connect((self.zabbix_host, int(self.zabbix_port)))
+            # read socket response, the five bytes are the head msg
+            ss.send(payload)
+            response_head = ss.recv(5, socket.MSG_WAITALL)
+            if response_head != "ZBXD\1":
+                LOG.error("Faild to send zabbix socket data,"
+                          "got invalid response.")
+                return
 
-        # read the date head to get the length of response
-        response_data_head = ss.recv(8, socket.MSG_WAITALL)
-        response_data = response_data_head[:4]
-        response_len = struct.unpack('i', response_data)[0]
+            # read the data head to get the length of response
+            response_data_head = ss.recv(8, socket.MSG_WAITALL)
+            response_data = response_data_head[:4]
+            response_len = struct.unpack('i', response_data)[0]
 
-        # read the whole rest of the response now that we know the length
-        response_raw = ss.recv(response_len, socket.MSG_WAITALL)
-        ss.close()
-        response = json.loads(response_raw)
-        LOG.info(response)
+            # read the whole rest of the response now that we know the length
+            response_raw = ss.recv(response_len, socket.MSG_WAITALL)
+            response = json.loads(response_raw)
+            LOG.info(response)
+        except (socket.timeout, socket.error) as err:
+            LOG.error("Socket connect to server(%s) port(%s) failed,"
+                      "socket error: %s" % (self.zabbix_host,
+                                            self.zabbix_port,
+                                            err))
+        finally:
+            if ss is not None:
+                ss.close()
         return response
 
     def socket_to_zabbix(self, payload=None):
